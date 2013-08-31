@@ -1,7 +1,6 @@
 package gamesincommon;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -47,14 +46,14 @@ public class GamesInCommon {
 	
 	/**
 	 * Merges multiple user game sets together to keep all games that are the same.
-	 * @param userGames A list of user game sets.
+	 * @param userGames A list of user game sets. There must be at least one set in this list.
 	 * @return A set containing all common games.
 	 */
 	public Set<Map.Entry<Integer, SteamGame>> mergeSets(List<Set<Map.Entry<Integer, SteamGame>>> userGames) {
 	  
-	  Set<Map.Entry<Integer, SteamGame>> result = new HashSet<Map.Entry<Integer, SteamGame>>();
+	  Set<Map.Entry<Integer, SteamGame>> result = userGames.get(0);
 	  
-	  for (int i = 0; i < userGames.size(); i++) {
+	  for (int i = 1; i < userGames.size(); i++) {
 	    result.retainAll(userGames.get(i));
 	  }
 	  
