@@ -16,37 +16,39 @@ import com.github.koraktor.steamcondenser.steam.community.SteamId;
 public class GamesInCommon {
 
 	/**
-	 * Displays all common games from the given steam users.
+	 * Finds common games between an arbitrarily long list of users
 	 * 
 	 * @param users
 	 *            A list of names to find common games for.
+	 * @return A collection of games common to all users
 	 */
-	public void displayCommonGames(List<String> users) {
+	public Collection<SteamGame> findCommonGames(List<String> users) {
 
-		try {
+		List<Collection<SteamGame>> userGames = new ArrayList<Collection<SteamGame>>();
 
-			List<Collection<SteamGame>> userGames = new ArrayList<Collection<SteamGame>>();
-
-			for (String name : users) {
+		for (String name : users) {
+			try {
 				userGames.add(getGames(SteamId.create(name)));
+			} catch (SteamCondenserException e) {
+				e.printStackTrace();
 			}
-
-			Collection<SteamGame> commonGames = mergeSets(userGames);
-
-			// List user game sizes.
-			for (int i = 0; i < userGames.size(); i++) {
-				System.out.println("Set " + i + " size: " + userGames.get(i).size());
-			}
-
-			// Lists games in common.
-			for (SteamGame i : commonGames) {
-				System.out.println(i.getName());
-			}
-
-		} catch (SteamCondenserException e) {
-			e.printStackTrace();
 		}
 
+		Collection<SteamGame> commonGames = mergeSets(userGames);
+		return commonGames;
+	}
+
+	/**
+	 * Displays all games from a collection on console output
+	 * 
+	 * @param games
+	 *            The collection to print
+	 */
+	public void displayCommonGames(Collection<SteamGame> games) {
+		// Lists games in common.
+		for (SteamGame i : games) {
+			System.out.println(i.getName());
+		}
 	}
 
 	/**
@@ -103,17 +105,17 @@ public class GamesInCommon {
 	public Collection<SteamGame> filterGames(Collection<SteamGame> gameList, List<FilterType> filterList) {
 
 		Collection<SteamGame> result = new HashSet<SteamGame>();
-		
+
 		for (SteamGame game : gameList) {
-		  
-			try (BufferedReader br = new BufferedReader(new InputStreamReader(
-			    new URL("http://store.steampowered.com/api/appdetails/?appids=" + game.getAppId()).openStream()));) {
-				
+
+			try (BufferedReader br = new BufferedReader(new InputStreamReader(new URL(
+					"http://store.steampowered.com/api/appdetails/?appids=" + game.getAppId()).openStream()));) {
+
 				// Read lines in until there are no more to be read, run filter on each
 				// line looking for specified package IDs.
-			  
+
 				String line;
-				
+
 				while ((line = br.readLine()) != null) {
 					for (FilterType filter : filterList) {
 						if (line.contains(filter.getValue())) {
@@ -121,22 +123,20 @@ public class GamesInCommon {
 						}
 					}
 				}
-				
+
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
+
 		}
 		return result;
 	}
 
 	/**
-	 * Merges multiple user game sets together to keep all games that are the
-	 * same.
+	 * Merges multiple user game sets together to keep all games that are the same.
 	 * 
 	 * @param userGames
-	 *            A list of user game sets. There must be at least one set in
-	 *            this list.
+	 *            A list of user game sets. There must be at least one set in this list.
 	 * @return A set containing all common games.
 	 */
 	public Collection<SteamGame> mergeSets(List<Collection<SteamGame>> userGames) {
@@ -156,7 +156,7 @@ public class GamesInCommon {
 		GamesInCommon gamesInCommon = new GamesInCommon();
 
 		List<String> users = gamesInCommon.getUsers();
-		gamesInCommon.displayCommonGames(users);
+		gamesInCommon.displayCommonGames(gamesInCommon.findCommonGames(users));
 
 	}
 
