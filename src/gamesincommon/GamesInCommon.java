@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import javax.swing.JFrame;
+import javax.swing.JTextArea;
 
 import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
 import com.github.koraktor.steamcondenser.steam.community.SteamGame;
@@ -17,8 +18,11 @@ import com.github.koraktor.steamcondenser.steam.community.SteamId;
 
 public class GamesInCommon {
 
+	JFrame mainFrame;
+
 	public GamesInCommon() {
-		JFrame mainFrame = new JFrame();
+		mainFrame = new JFrame();
+		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainFrame.setLocationRelativeTo(null);
 		MainPanel mainPanel = new MainPanel(this);
 		mainFrame.add(mainPanel);
@@ -62,6 +66,31 @@ public class GamesInCommon {
 		}
 		// Final count
 		System.out.println("Total games in common: " + games.size());
+	}
+
+	/**
+	 * Displays all games from a collection in a new graphical interface frame.
+	 * 
+	 * @param games
+	 *            Games to show.
+	 */
+	public void showCommonGames(Collection<SteamGame> games) {
+		// Create frame object
+		JFrame displayFrame = new JFrame();
+		displayFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		displayFrame.setLocationRelativeTo(mainFrame);
+		// Display content
+		JTextArea displayArea = new JTextArea();
+		displayFrame.add(displayArea);
+		displayArea.setEditable(false);
+		for (SteamGame i : games) {
+			displayArea.append(i.getName() + "\n");
+		}
+		// Final count
+		displayArea.append("Total games in common: " + games.size());
+		displayFrame.pack();
+		displayFrame.setVisible(true);
+
 	}
 
 	/**
