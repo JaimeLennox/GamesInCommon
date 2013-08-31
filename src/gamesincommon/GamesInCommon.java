@@ -263,7 +263,7 @@ public class GamesInCommon {
 						for (FilterType filter : filterList) {
 							// default false until set to true
 							foundProperties.put(filter, false);
-							if (line.contains(filter.getValue())) {
+							if (line.contains("\"" + filter.getValue() + "\"")) {
 								result.add(game);
 								// success - add to db
 								connection.createStatement().executeUpdate(
