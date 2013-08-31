@@ -35,10 +35,14 @@ public class GamesInCommon {
 		
 	}
 
-	public Set<Map.Entry<Integer, SteamGame>> getGames(SteamId sid) throws SteamCondenserException {
-		Set<Map.Entry<Integer, SteamGame>> result;
-		result = sid.getGames().entrySet();
-		return result;
+	/**
+	 * Finds all games from the given steam user.
+	 * @param sId The SteamId of the user to get games from.
+	 * @return A set of all games for the give user.
+	 * @throws SteamCondenserException
+	 */
+	public Set<Map.Entry<Integer, SteamGame>> getGames(SteamId sId) throws SteamCondenserException {
+		return sId.getGames().entrySet();
 	}
 	
 	/**
