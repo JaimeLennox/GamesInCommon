@@ -1,5 +1,6 @@
 package gamesincommon;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -15,15 +16,19 @@ public class GamesInCommon {
 	public GamesInCommon() {
 
 		try {
-			Set<Map.Entry<Integer, SteamGame>> set1 = getGames(SteamId.create("HSAR"));
-			System.out.println("SET1 size = "+set1.size());
-			Set<Map.Entry<Integer, SteamGame>> set2 = getGames(SteamId.create("yammy24"));
-			System.out.println("SET2 size = "+set2.size());
-			set1.retainAll(set2);
-			// lists games in common
-			for (Entry<Integer, SteamGame> i : set1) {
+		  
+		  List<Set<Map.Entry<Integer, SteamGame>>> userGames = new ArrayList<Set<Map.Entry<Integer, SteamGame>>>();
+		  
+			userGames.add(getGames(SteamId.create("HSAR")));
+			userGames.add(getGames(SteamId.create("yammy24")));
+			
+			Set<Map.Entry<Integer, SteamGame>> commonGames = mergeSets(userGames);
+			
+			// Lists games in common.
+			for (Entry<Integer, SteamGame> i : commonGames) {
 				System.out.println(i.getValue().getName());
 			}
+			
 		} catch (SteamCondenserException e) {
 			e.printStackTrace();
 		}
