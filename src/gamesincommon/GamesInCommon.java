@@ -1,43 +1,78 @@
 package gamesincommon;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 
 import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
 import com.github.koraktor.steamcondenser.steam.community.SteamGame;
 import com.github.koraktor.steamcondenser.steam.community.SteamId;
 
 public class GamesInCommon {
-
-	public GamesInCommon() {
-
-		try {
-		  
-		  List<Collection<SteamGame>> userGames = new ArrayList<Collection<SteamGame>>();
-		  
-			userGames.add(getGames(SteamId.create("HSAR")));
-			userGames.add(getGames(SteamId.create("yammy24")));
-			
-			Collection<SteamGame> commonGames = mergeSets(userGames);
-			
-			// List user game sizes.
-			for (int i = 0; i < userGames.size(); i++) {
-			  System.out.println("Set " + i + " size: " + userGames.get(i).size());
-			}
-			
-			// Lists games in common.
-			for (SteamGame i : commonGames) {
-				System.out.println(i.getName());
-			}
-			
-		} catch (SteamCondenserException e) {
-			e.printStackTrace();
-		}
-		
+	
+  /**
+   * Displays all common games from the given steam users.
+   * @param users A list of names to find common games for.
+   */
+	public void displayCommonGames(List<String> users) {
+    
+	  try {
+      
+      List<Collection<SteamGame>> userGames = new ArrayList<Collection<SteamGame>>();
+      
+      for (String name : users) {
+        userGames.add(getGames(SteamId.create(name)));
+      }
+      
+      Collection<SteamGame> commonGames = mergeSets(userGames);
+      
+      // List user game sizes.
+      for (int i = 0; i < userGames.size(); i++) {
+        System.out.println("Set " + i + " size: " + userGames.get(i).size());
+      }
+      
+      // Lists games in common.
+      for (SteamGame i : commonGames) {
+        System.out.println(i.getName());
+      }
+      
+    } catch (SteamCondenserException e) {
+      e.printStackTrace();
+    }
+    
+  }
+	
+	/**
+	 * Creates a list of users from user input.
+	 * @return The list of user names.
+	 */
+	public List<String> getUsers() {
+	  
+	  List<String> users = new ArrayList<String>();
+    
+    System.out.println("Enter users one by one, typing 'FIN' when complete:");
+    
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in));){
+      
+      String input;
+      input = br.readLine();
+      
+      while (!input.equals("FIN")) {
+        
+        users.add(input);
+        input = br.readLine();
+        
+      }
+      
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    
+    return users;
+    
 	}
 
 	/**
@@ -68,7 +103,12 @@ public class GamesInCommon {
 	}
 
 	public static void main(String[] args) {
-		GamesInCommon gic = new GamesInCommon();
+	  
+		GamesInCommon gamesInCommon = new GamesInCommon();
+		
+		List<String> users = gamesInCommon.getUsers();
+		gamesInCommon.displayCommonGames(users);
+		
 	}
 
 }
