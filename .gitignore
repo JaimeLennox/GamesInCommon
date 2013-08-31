@@ -1,6 +1,10 @@
 *.class
-.project
 
 # Package Files #
 *.war
 *.ear
+
+# Eclipse Project Files #
+.project
+.classpath
+.settings
