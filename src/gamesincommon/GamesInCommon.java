@@ -9,11 +9,22 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+import javax.swing.JFrame;
+
 import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
 import com.github.koraktor.steamcondenser.steam.community.SteamGame;
 import com.github.koraktor.steamcondenser.steam.community.SteamId;
 
 public class GamesInCommon {
+
+	public GamesInCommon() {
+		JFrame mainFrame = new JFrame();
+		mainFrame.setLocationRelativeTo(null);
+		MainPanel mainPanel = new MainPanel(this);
+		mainFrame.add(mainPanel);
+		mainFrame.pack();
+		mainFrame.setVisible(true);
+	}
 
 	/**
 	 * Displays all common games from the given steam users.
@@ -103,17 +114,18 @@ public class GamesInCommon {
 	public Collection<SteamGame> filterGames(Collection<SteamGame> gameList, List<FilterType> filterList) {
 
 		Collection<SteamGame> result = new HashSet<SteamGame>();
-		
+
 		for (SteamGame game : gameList) {
-		  
-			try (BufferedReader br = new BufferedReader(new InputStreamReader(
-			    new URL("http://store.steampowered.com/api/appdetails/?appids=" + game.getAppId()).openStream()));) {
-				
-				// Read lines in until there are no more to be read, run filter on each
+
+			try (BufferedReader br = new BufferedReader(new InputStreamReader(new URL(
+					"http://store.steampowered.com/api/appdetails/?appids=" + game.getAppId()).openStream()));) {
+
+				// Read lines in until there are no more to be read, run filter
+				// on each
 				// line looking for specified package IDs.
-			  
+
 				String line;
-				
+
 				while ((line = br.readLine()) != null) {
 					for (FilterType filter : filterList) {
 						if (line.contains(filter.getValue())) {
@@ -121,22 +133,20 @@ public class GamesInCommon {
 						}
 					}
 				}
-				
+
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
+
 		}
 		return result;
 	}
 
 	/**
-	 * Merges multiple user game sets together to keep all games that are the
-	 * same.
+	 * Merges multiple user game sets together to keep all games that are the same.
 	 * 
 	 * @param userGames
-	 *            A list of user game sets. There must be at least one set in
-	 *            this list.
+	 *            A list of user game sets. There must be at least one set in this list.
 	 * @return A set containing all common games.
 	 */
 	public Collection<SteamGame> mergeSets(List<Collection<SteamGame>> userGames) {
@@ -155,8 +165,8 @@ public class GamesInCommon {
 
 		GamesInCommon gamesInCommon = new GamesInCommon();
 
-		List<String> users = gamesInCommon.getUsers();
-		gamesInCommon.displayCommonGames(users);
+		// List<String> users = gamesInCommon.getUsers();
+		// gamesInCommon.displayCommonGames(users);
 
 	}
 
