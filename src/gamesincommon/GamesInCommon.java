@@ -23,6 +23,11 @@ public class GamesInCommon {
 			
 			Set<Map.Entry<Integer, SteamGame>> commonGames = mergeSets(userGames);
 			
+			// List user game sizes.
+			for (int i = 0; i < userGames.size(); i++) {
+			  System.out.println("Set " + i + " size: " + userGames.get(i).size());
+			}
+			
 			// Lists games in common.
 			for (Entry<Integer, SteamGame> i : commonGames) {
 				System.out.println(i.getValue().getName());
