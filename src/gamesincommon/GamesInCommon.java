@@ -17,7 +17,7 @@ import com.github.koraktor.steamcondenser.steam.community.SteamGame;
 import com.github.koraktor.steamcondenser.steam.community.SteamId;
 
 public class GamesInCommon {
-	
+
 	JFrame mainFrame;
 
 	public GamesInCommon() {
@@ -81,12 +81,15 @@ public class GamesInCommon {
 		displayFrame.setLocationRelativeTo(mainFrame);
 		// Display content
 		JTextArea displayArea = new JTextArea();
+		displayFrame.add(displayArea);
 		displayArea.setEditable(false);
 		for (SteamGame i : games) {
-			displayArea.append(i.getName());
+			displayArea.append(i.getName() + "\n");
 		}
 		// Final count
 		displayArea.append("Total games in common: " + games.size());
+		displayFrame.pack();
+		displayFrame.setVisible(true);
 
 	}
 
