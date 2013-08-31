@@ -60,6 +60,8 @@ public class GamesInCommon {
 		for (SteamGame i : games) {
 			System.out.println(i.getName());
 		}
+		// Final count
+		System.out.println("Total games in common: " + games.size());
 	}
 
 	/**
@@ -125,7 +127,7 @@ public class GamesInCommon {
 
 				String line;
 
-				while ((line = br.readLine()) != null) {
+				while (((line = br.readLine()) != null) && (!result.contains(game))) {
 					for (FilterType filter : filterList) {
 						if (line.contains(filter.getValue())) {
 							result.add(game);
