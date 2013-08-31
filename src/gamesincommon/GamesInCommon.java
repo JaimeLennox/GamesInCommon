@@ -12,8 +12,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
@@ -218,23 +220,72 @@ public class GamesInCommon {
 		Collection<SteamGame> result = new HashSet<SteamGame>();
 
 		for (SteamGame game : gameList) {
-			System.out.println("Checking game '" + game.getName() + "'");
-			try (BufferedReader br = new BufferedReader(new InputStreamReader(new URL(
-					"http://store.steampowered.com/api/appdetails/?appids=" + game.getAppId()).openStream()));) {
-				// Read lines in until there are no more to be read, run filter on each line looking for specified package IDs.
-
-				String line;
-
-				while (((line = br.readLine()) != null) && (!result.contains(game))) {
+			// first run a query through the local db
+			boolean checkWeb = true;
+			try {
+				Statement s = connection.createStatement();
+				// get list of tables
+				ResultSet tableSet = s.executeQuery("SELECT name FROM sqlite_master WHERE type='table';");
+				// query the table that matches the filter
+				while (tableSet.next()) {
 					for (FilterType filter : filterList) {
-						if (line.contains(filter.getValue())) {
-							result.add(game);
+						// WARNING - This does NOT trigger a webpage update if one or more filters have no DB data, but at least one filter
+						// is TRUE
+						ResultSet rSet = null;
+						if (filter.getValue().equals((tableSet.getString("name")))) {
+							rSet = s.executeQuery("SELECT * FROM [" + tableSet.getString("name") + "] WHERE AppID = '" + game.getAppId()
+									+ "'");
+						}
+						// if rSet.next() indicates a match
+						while ((rSet != null) && (rSet.next())) {
+							// if the game passes the filter and is not already in the result collection, add it
+							if (rSet.getBoolean("HasProperty") && (!result.contains(game))) {
+								result.add(game);
+							}
+							// if there's an entry in the database, no need to check anywhere else
+							checkWeb = false;
+							System.out.println("[SQL] Checked game '" + game.getName() + "'");
 						}
 					}
 				}
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+			// if checkWeb never got turned to false, we need to fetch data from the steampowered.com website
+			if (checkWeb) {
+				// foundProperties records whether it has or does not have each of the filters
+				HashMap<FilterType, Boolean> foundProperties = new HashMap<FilterType, Boolean>();
+				try (BufferedReader br = new BufferedReader(new InputStreamReader(new URL(
+						"http://store.steampowered.com/api/appdetails/?appids=" + game.getAppId()).openStream()));) {
+					// Read lines in until there are no more to be read, run filter on each line looking for specified package IDs.
+					String line;
+					while (((line = br.readLine()) != null) && (!result.contains(game))) {
+						for (FilterType filter : filterList) {
+							// default false until set to true
+							foundProperties.put(filter, false);
+							if (line.contains(filter.getValue())) {
+								result.add(game);
+								// success - add to db
+								connection.createStatement().executeUpdate(
+										"INSERT INTO [" + filter.getValue() + "] (AppID, Name, HasProperty) VALUES ('" + game.getAppId()
+												+ "','" + sanitiseInputString(game.getName()) + "', 1)");
+								foundProperties.put(filter, true);
+							}
+						}
+					}
+					// insert filters returning false as false to the DB
+					for (Map.Entry<FilterType, Boolean> entry : foundProperties.entrySet()) {
+						if (entry.getValue().equals(new Boolean(false))) {
+							connection.createStatement().executeUpdate(
+									"INSERT INTO [" + entry.getKey().toString() + "] (AppID, Name, HasProperty) VALUES ('"
+											+ game.getAppId() + "','" + sanitiseInputString(game.getName()) + "', 0)");
+						}
+					}
+					System.out.println("[WEB] Checked game '" + game.getName() + "'");
 
-			} catch (IOException e) {
-				e.printStackTrace();
+				} catch (IOException | SQLException e) {
+					e.printStackTrace();
+				}
 			}
 
 		}
@@ -258,6 +309,10 @@ public class GamesInCommon {
 
 		return result;
 
+	}
+
+	public String sanitiseInputString(String input) {
+		return input.replace("'", "''");
 	}
 
 	public static void main(String[] args) {
