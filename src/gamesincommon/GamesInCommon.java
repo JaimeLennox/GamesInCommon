@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import javax.swing.JFrame;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
@@ -80,8 +81,9 @@ public class GamesInCommon {
 		displayFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		displayFrame.setLocationRelativeTo(mainFrame);
 		// Display content
-		JTextArea displayArea = new JTextArea();
-		displayFrame.add(displayArea);
+		JTextArea displayArea = new JTextArea(40,30);
+		JScrollPane scrollPane = new JScrollPane(displayArea);
+		displayFrame.add(scrollPane);
 		displayArea.setEditable(false);
 		for (SteamGame i : games) {
 			displayArea.append(i.getName() + "\n");
