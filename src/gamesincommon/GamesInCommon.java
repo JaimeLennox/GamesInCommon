@@ -77,7 +77,6 @@ public class GamesInCommon {
 	public void showCommonGames(Collection<SteamGame> games) {
 		// Create frame object
 		JFrame displayFrame = new JFrame();
-		displayFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		displayFrame.setLocationRelativeTo(mainFrame);
 		// Display content
 		JTextArea displayArea = new JTextArea();
