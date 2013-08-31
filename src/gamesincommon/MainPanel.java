@@ -62,7 +62,7 @@ public class MainPanel extends JPanel implements ActionListener {
 			commonGames = parent.filterGames(commonGames, filters);
 		}
 		// display filtered list of common games
-		parent.displayCommonGames(commonGames);
+		parent.showCommonGames(commonGames);
 
 	}
 }
