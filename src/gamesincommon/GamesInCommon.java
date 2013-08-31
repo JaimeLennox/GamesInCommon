@@ -9,11 +9,22 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+import javax.swing.JFrame;
+
 import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
 import com.github.koraktor.steamcondenser.steam.community.SteamGame;
 import com.github.koraktor.steamcondenser.steam.community.SteamId;
 
 public class GamesInCommon {
+
+	public GamesInCommon() {
+		JFrame mainFrame = new JFrame();
+		mainFrame.setLocationRelativeTo(null);
+		MainPanel mainPanel = new MainPanel(this);
+		mainFrame.add(mainPanel);
+		mainFrame.pack();
+		mainFrame.setVisible(true);
+	}
 
 	/**
 	 * Finds common games between an arbitrarily long list of users
@@ -49,6 +60,8 @@ public class GamesInCommon {
 		for (SteamGame i : games) {
 			System.out.println(i.getName());
 		}
+		// Final count
+		System.out.println("Total games in common: " + games.size());
 	}
 
 	/**
@@ -107,16 +120,14 @@ public class GamesInCommon {
 		Collection<SteamGame> result = new HashSet<SteamGame>();
 
 		for (SteamGame game : gameList) {
-
+			System.out.println("Checking game '" + game.getName() + "'");
 			try (BufferedReader br = new BufferedReader(new InputStreamReader(new URL(
 					"http://store.steampowered.com/api/appdetails/?appids=" + game.getAppId()).openStream()));) {
-
-				// Read lines in until there are no more to be read, run filter on each
-				// line looking for specified package IDs.
+				// Read lines in until there are no more to be read, run filter on each line looking for specified package IDs.
 
 				String line;
 
-				while ((line = br.readLine()) != null) {
+				while (((line = br.readLine()) != null) && (!result.contains(game))) {
 					for (FilterType filter : filterList) {
 						if (line.contains(filter.getValue())) {
 							result.add(game);
@@ -154,10 +165,8 @@ public class GamesInCommon {
 	public static void main(String[] args) {
 
 		GamesInCommon gamesInCommon = new GamesInCommon();
-
-		List<String> users = gamesInCommon.getUsers();
-		gamesInCommon.displayCommonGames(gamesInCommon.findCommonGames(users));
+		// List<String> users = gamesInCommon.getUsers();
+		// gamesInCommon.displayCommonGames(gamesInCommon.findCommonGames(users));
 
 	}
-
 }
