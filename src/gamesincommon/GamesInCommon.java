@@ -27,37 +27,39 @@ public class GamesInCommon {
 	}
 
 	/**
-	 * Displays all common games from the given steam users.
+	 * Finds common games between an arbitrarily long list of users
 	 * 
 	 * @param users
 	 *            A list of names to find common games for.
+	 * @return A collection of games common to all users
 	 */
-	public void displayCommonGames(List<String> users) {
+	public Collection<SteamGame> findCommonGames(List<String> users) {
 
-		try {
+		List<Collection<SteamGame>> userGames = new ArrayList<Collection<SteamGame>>();
 
-			List<Collection<SteamGame>> userGames = new ArrayList<Collection<SteamGame>>();
-
-			for (String name : users) {
+		for (String name : users) {
+			try {
 				userGames.add(getGames(SteamId.create(name)));
+			} catch (SteamCondenserException e) {
+				e.printStackTrace();
 			}
-
-			Collection<SteamGame> commonGames = mergeSets(userGames);
-
-			// List user game sizes.
-			for (int i = 0; i < userGames.size(); i++) {
-				System.out.println("Set " + i + " size: " + userGames.get(i).size());
-			}
-
-			// Lists games in common.
-			for (SteamGame i : commonGames) {
-				System.out.println(i.getName());
-			}
-
-		} catch (SteamCondenserException e) {
-			e.printStackTrace();
 		}
 
+		Collection<SteamGame> commonGames = mergeSets(userGames);
+		return commonGames;
+	}
+
+	/**
+	 * Displays all games from a collection on console output
+	 * 
+	 * @param games
+	 *            The collection to print
+	 */
+	public void displayCommonGames(Collection<SteamGame> games) {
+		// Lists games in common.
+		for (SteamGame i : games) {
+			System.out.println(i.getName());
+		}
 	}
 
 	/**
@@ -119,10 +121,7 @@ public class GamesInCommon {
 
 			try (BufferedReader br = new BufferedReader(new InputStreamReader(new URL(
 					"http://store.steampowered.com/api/appdetails/?appids=" + game.getAppId()).openStream()));) {
-
-				// Read lines in until there are no more to be read, run filter
-				// on each
-				// line looking for specified package IDs.
+				// Read lines in until there are no more to be read, run filter on each line looking for specified package IDs.
 
 				String line;
 
@@ -164,10 +163,8 @@ public class GamesInCommon {
 	public static void main(String[] args) {
 
 		GamesInCommon gamesInCommon = new GamesInCommon();
-
-		// List<String> users = gamesInCommon.getUsers();
-		// gamesInCommon.displayCommonGames(users);
+		List<String> users = gamesInCommon.getUsers();
+		gamesInCommon.displayCommonGames(gamesInCommon.findCommonGames(users));
 
 	}
-
 }
