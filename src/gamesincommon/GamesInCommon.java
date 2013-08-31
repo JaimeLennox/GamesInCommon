@@ -118,7 +118,7 @@ public class GamesInCommon {
 		Collection<SteamGame> result = new HashSet<SteamGame>();
 
 		for (SteamGame game : gameList) {
-
+			System.out.println("Checking game '" + game.getName() + "'");
 			try (BufferedReader br = new BufferedReader(new InputStreamReader(new URL(
 					"http://store.steampowered.com/api/appdetails/?appids=" + game.getAppId()).openStream()));) {
 				// Read lines in until there are no more to be read, run filter on each line looking for specified package IDs.
@@ -163,8 +163,8 @@ public class GamesInCommon {
 	public static void main(String[] args) {
 
 		GamesInCommon gamesInCommon = new GamesInCommon();
-		List<String> users = gamesInCommon.getUsers();
-		gamesInCommon.displayCommonGames(gamesInCommon.findCommonGames(users));
+		// List<String> users = gamesInCommon.getUsers();
+		// gamesInCommon.displayCommonGames(gamesInCommon.findCommonGames(users));
 
 	}
 }

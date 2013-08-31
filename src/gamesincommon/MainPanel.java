@@ -6,9 +6,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.Collection;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
+
+import com.github.koraktor.steamcondenser.steam.community.SteamGame;
 
 public class MainPanel extends JPanel implements ActionListener {
 
@@ -50,8 +54,15 @@ public class MainPanel extends JPanel implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		parent.displayCommonGames(playerPanel.getPlayerNames());
+		// find common games
+		Collection<SteamGame> commonGames = parent.findCommonGames(playerPanel.getPlayerNames());
+		// apply filters, if applicable
+		List<FilterType> filters = filterPanel.getFilters();
+		if (!filters.isEmpty()) {
+			commonGames = parent.filterGames(commonGames, filters);
+		}
+		// display filtered list of common games
+		parent.displayCommonGames(commonGames);
 
 	}
-
 }
