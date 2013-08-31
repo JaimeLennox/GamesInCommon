@@ -1,6 +1,7 @@
 package gamesincommon;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -27,16 +28,12 @@ public class GamesInCommon {
 	JFrame mainFrame;
 
 	Connection connection = null;
-	ResultSet resultSet = null;
-	Statement statement = null;
 
 	public GamesInCommon() {
 		// initialise database connector
-		try {
-			Class.forName("org.sqlite.JDBC");
-			connection = DriverManager.getConnection("jdbc:sqlite:D:\\testdb.db");
-		} catch (ClassNotFoundException | SQLException e) {
-			e.printStackTrace();
+		connection = InitialDBCheck();
+		if (connection == null) {
+			throw new RuntimeException("Connection could not be establised to local database.");
 		}
 		// initialise GUI components
 		mainFrame = new JFrame();
@@ -46,6 +43,60 @@ public class GamesInCommon {
 		mainFrame.add(mainPanel);
 		mainFrame.pack();
 		mainFrame.setVisible(true);
+	}
+
+	/**
+	 * Creates local database, if necessary, and creates tables for all enum entries.
+	 * 
+	 * @return A Connection object to the database.
+	 */
+	private Connection InitialDBCheck() {
+		// newDB is TRUE if the database is about to be created by DriverManager.getConnection();
+		File dbFile = new File("gamedata.db");
+		boolean newDB = (!(dbFile).exists());
+
+		Connection result = null;
+		try {
+			Class.forName("org.sqlite.JDBC");
+			// attempt to connect to the database
+			result = DriverManager.getConnection("jdbc:sqlite:gamedata.db");
+			// check all tables from the information schema
+			Statement statement = result.createStatement();
+			ResultSet resultSet = null;
+			// and copy resultset to List object to enable random access
+			List<String> tableList = new ArrayList<String>();
+			// skip if new database, as it'll all be new anyway
+			if (!newDB) {
+				// query db
+				resultSet = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table';");
+				// copy to tableList
+				while (resultSet.next()) {
+					tableList.add(resultSet.getString("name"));
+				}
+			} else {
+				System.out.println("New database created.");
+			}
+			// check all filtertypes have a corresponding table, create if one if not present
+			// skip check and create if the database is new
+			for (FilterType filter : FilterType.values()) {
+				boolean filterFound = false;
+				if (!newDB) {
+					for (String tableName : tableList) {
+						if (tableName.equals(filter.getValue())) {
+							filterFound = true;
+						}
+					}
+				}
+				// if the tableList is traversed and the filter was not found, create a table for it
+				if (!filterFound) {
+					statement.executeUpdate("CREATE TABLE [" + filter.getValue() + "] ( AppID VARCHAR( 16 )  PRIMARY KEY ON CONFLICT FAIL,"
+							+ "Name VARCHAR( 64 )," + "HasProperty BOOLEAN NOT NULL ON CONFLICT FAIL );");
+				}
+			}
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+		}
+		return result;
 	}
 
 	/**
