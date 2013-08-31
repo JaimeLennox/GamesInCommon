@@ -4,6 +4,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -21,7 +26,19 @@ public class GamesInCommon {
 
 	JFrame mainFrame;
 
+	Connection connection = null;
+	ResultSet resultSet = null;
+	Statement statement = null;
+
 	public GamesInCommon() {
+		// initialise database connector
+		try {
+			Class.forName("org.sqlite.JDBC");
+			connection = DriverManager.getConnection("jdbc:sqlite:D:\\testdb.db");
+		} catch (ClassNotFoundException | SQLException e) {
+			e.printStackTrace();
+		}
+		// initialise GUI components
 		mainFrame = new JFrame();
 		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainFrame.setLocationRelativeTo(null);
@@ -80,7 +97,7 @@ public class GamesInCommon {
 		JFrame displayFrame = new JFrame();
 		displayFrame.setLocationRelativeTo(mainFrame);
 		// Display content
-		JTextArea displayArea = new JTextArea(40,30);
+		JTextArea displayArea = new JTextArea(40, 30);
 		JScrollPane scrollPane = new JScrollPane(displayArea);
 		displayFrame.add(scrollPane);
 		displayArea.setEditable(false);
