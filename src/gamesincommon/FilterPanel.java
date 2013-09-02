@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JCheckBox;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public class FilterPanel extends JPanel {
@@ -18,11 +17,11 @@ public class FilterPanel extends JPanel {
 
 	public FilterPanel() {
 		this.setLayout(new GridLayout(0, 1));
-		this.add(new JLabel("Filters"));
 		// creates checkbox list of all available filter types
 		filterCheckBoxes = new ArrayList<JCheckBox>();
 		for (FilterType filter : FilterType.values()) {
 			JCheckBox checkBox = new JCheckBox(filter.getValue());
+			 checkBox.setFont(Gui.font);
 			this.add(checkBox);
 			filterCheckBoxes.add(checkBox);
 		}

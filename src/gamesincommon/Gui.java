@@ -1,34 +1,43 @@
 package gamesincommon;
 
 import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
-import javax.swing.JFrame;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
-import javax.swing.JPanel;
 import javax.swing.JButton;
-import javax.swing.LayoutStyle.ComponentPlacement;
-import java.awt.GridLayout;
-import javax.swing.JTextField;
-import java.awt.Font;
-import java.util.Collection;
-
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.border.TitledBorder;
-import javax.swing.JCheckBox;
-import javax.swing.JLabel;
-import javax.swing.border.SoftBevelBorder;
+import javax.swing.JTextField;
+import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.BevelBorder;
+import javax.swing.border.SoftBevelBorder;
+import javax.swing.border.TitledBorder;
 
 import com.github.koraktor.steamcondenser.steam.community.SteamGame;
 
 public class Gui {
+  
+  final static Font font = new Font("Tahoma", Font.PLAIN, 18);
 
   private JFrame gamesInCommonFrame;
   private JTextArea outputTextArea;
+  private JTextArea playerListTextArea;
   
-  private GamesInCommon gamesInCommon;
+  private GamesInCommon gamesInCommon = new GamesInCommon();
 
   /**
    * Launch the application.
@@ -59,10 +68,10 @@ public class Gui {
   private void initialize() {
     gamesInCommonFrame = new JFrame();
     gamesInCommonFrame.setTitle("Games in Common");
-    gamesInCommonFrame.setBounds(100, 100, 900, 350);
+    gamesInCommonFrame.setBounds(100, 100, 900, 400);
     gamesInCommonFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     
-    JPanel playerPanel = new JPanel();
+    final JPanel playerPanel = new JPanel();
     playerPanel.setBorder(new TitledBorder(null, "Players", TitledBorder.LEADING, TitledBorder.TOP, null, null));
     
     JPanel optionsPanel = new JPanel();
@@ -81,14 +90,14 @@ public class Gui {
       groupLayout.createParallelGroup(Alignment.TRAILING)
         .addGroup(groupLayout.createSequentialGroup()
           .addContainerGap()
-          .addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
-            .addComponent(consolePanel, GroupLayout.DEFAULT_SIZE, 858, Short.MAX_VALUE)
+          .addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
+            .addComponent(consolePanel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 858, Short.MAX_VALUE)
             .addGroup(groupLayout.createSequentialGroup()
-              .addGroup(groupLayout.createParallelGroup(Alignment.LEADING)
+              .addGroup(groupLayout.createParallelGroup(Alignment.TRAILING, false)
                 .addGroup(groupLayout.createSequentialGroup()
-                  .addComponent(optionsPanel, GroupLayout.PREFERRED_SIZE, 267, GroupLayout.PREFERRED_SIZE)
-                  .addPreferredGap(ComponentPlacement.RELATED)
-                  .addComponent(scanPanel, GroupLayout.DEFAULT_SIZE, 156, Short.MAX_VALUE))
+                  .addComponent(optionsPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                  .addPreferredGap(ComponentPlacement.UNRELATED)
+                  .addComponent(scanPanel, GroupLayout.PREFERRED_SIZE, 134, GroupLayout.PREFERRED_SIZE))
                 .addComponent(playerPanel, GroupLayout.PREFERRED_SIZE, 430, GroupLayout.PREFERRED_SIZE))
               .addPreferredGap(ComponentPlacement.RELATED)
               .addComponent(outputPanel, GroupLayout.PREFERRED_SIZE, 421, GroupLayout.PREFERRED_SIZE)))
@@ -103,11 +112,11 @@ public class Gui {
               .addComponent(playerPanel, GroupLayout.PREFERRED_SIZE, 148, GroupLayout.PREFERRED_SIZE)
               .addGap(18)
               .addGroup(groupLayout.createParallelGroup(Alignment.TRAILING)
-                .addComponent(optionsPanel, GroupLayout.PREFERRED_SIZE, 83, GroupLayout.PREFERRED_SIZE)
-                .addComponent(scanPanel, GroupLayout.PREFERRED_SIZE, 75, GroupLayout.PREFERRED_SIZE)))
+                .addComponent(scanPanel, GroupLayout.PREFERRED_SIZE, 75, GroupLayout.PREFERRED_SIZE)
+                .addComponent(optionsPanel, GroupLayout.PREFERRED_SIZE, 83, GroupLayout.PREFERRED_SIZE)))
             .addComponent(outputPanel, GroupLayout.PREFERRED_SIZE, 249, GroupLayout.PREFERRED_SIZE))
           .addPreferredGap(ComponentPlacement.RELATED)
-          .addComponent(consolePanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+          .addComponent(consolePanel, GroupLayout.PREFERRED_SIZE, 27, Short.MAX_VALUE)
           .addContainerGap())
     );
     outputPanel.setLayout(new GridLayout(1, 0, 0, 0));
@@ -116,57 +125,72 @@ public class Gui {
     outputPanel.add(outputScrollPane);
     
     outputTextArea = new JTextArea();
+    outputTextArea.setFont(new Font("Tahoma", Font.PLAIN, 18));
     outputScrollPane.setViewportView(outputTextArea);
     scanPanel.setLayout(new GridLayout(0, 1, 0, 0));
     
-    JButton btnScan = new JButton("Scan");
-    btnScan.setFont(new Font("Tahoma", Font.PLAIN, 18));
-    scanPanel.add(btnScan);
+    JScrollPane consoleScrollPane = new JScrollPane();
     
-    JLabel consoleLabel = new JLabel("");
-    consoleLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
     GroupLayout gl_consolePanel = new GroupLayout(consolePanel);
     gl_consolePanel.setHorizontalGroup(
       gl_consolePanel.createParallelGroup(Alignment.LEADING)
-        .addComponent(consoleLabel, Alignment.TRAILING, GroupLayout.DEFAULT_SIZE, 408, Short.MAX_VALUE)
+        .addComponent(consoleScrollPane, GroupLayout.DEFAULT_SIZE, 852, Short.MAX_VALUE)
     );
     gl_consolePanel.setVerticalGroup(
-      gl_consolePanel.createParallelGroup(Alignment.TRAILING)
-        .addGroup(Alignment.LEADING, gl_consolePanel.createSequentialGroup()
-          .addComponent(consoleLabel)
-          .addContainerGap(GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+      gl_consolePanel.createParallelGroup(Alignment.LEADING)
+        .addComponent(consoleScrollPane, GroupLayout.PREFERRED_SIZE, 21, Short.MAX_VALUE)
     );
+    
+    JTextArea consoleText = new JTextArea("");
+    consoleScrollPane.setViewportView(consoleText);
+    consoleText.setFont(new Font("Tahoma", Font.PLAIN, 18));
+    
+    MessageConsole messageConsole = new MessageConsole(consoleText);
+    messageConsole.redirectOut(null, System.out);
     consolePanel.setLayout(gl_consolePanel);
     
-    JPanel checkBoxPanel = new JPanel();
+    final FilterPanel filterPanel = new FilterPanel();
     GroupLayout gl_optionsPanel = new GroupLayout(optionsPanel);
     gl_optionsPanel.setHorizontalGroup(
       gl_optionsPanel.createParallelGroup(Alignment.LEADING)
         .addGroup(gl_optionsPanel.createSequentialGroup()
           .addContainerGap()
-          .addComponent(checkBoxPanel, GroupLayout.PREFERRED_SIZE, 205, Short.MAX_VALUE)
+          .addComponent(filterPanel, GroupLayout.PREFERRED_SIZE, 205, Short.MAX_VALUE)
           .addContainerGap())
     );
     gl_optionsPanel.setVerticalGroup(
       gl_optionsPanel.createParallelGroup(Alignment.LEADING)
         .addGroup(gl_optionsPanel.createSequentialGroup()
           .addContainerGap()
-          .addComponent(checkBoxPanel, GroupLayout.DEFAULT_SIZE, 32, Short.MAX_VALUE)
+          .addComponent(filterPanel, GroupLayout.DEFAULT_SIZE, 32, Short.MAX_VALUE)
           .addContainerGap())
     );
-    checkBoxPanel.setLayout(new GridLayout(1, 2, 0, 0));
-    
-    JCheckBox multiplayerCheckBox = new JCheckBox("Multiplayer");
-    multiplayerCheckBox.setFont(new Font("Tahoma", Font.PLAIN, 18));
-    checkBoxPanel.add(multiplayerCheckBox);
-    
-    JCheckBox coopCheckBox = new JCheckBox("Co-op");
-    coopCheckBox.setFont(new Font("Tahoma", Font.PLAIN, 18));
-    checkBoxPanel.add(coopCheckBox);
+    filterPanel.setLayout(new GridLayout(1, 2, 0, 0));
     optionsPanel.setLayout(gl_optionsPanel);
     
     JPanel playerButtonPanel = new JPanel();
     playerButtonPanel.setLayout(new GridLayout(1, 2, 0, 0));
+    
+    JButton scanButton = new JButton("Scan");
+    scanButton.setFont(new Font("Tahoma", Font.PLAIN, 18));
+    scanButton.addActionListener(new ActionListener() {
+
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        // find common games
+        Collection<SteamGame> commonGames = gamesInCommon.findCommonGames(getPlayerNames());
+        // apply filters, if applicable
+        List<FilterType> filters = filterPanel.getFilters();
+        if (!filters.isEmpty()) {
+          commonGames = gamesInCommon.filterGames(commonGames, filters);
+        }
+        // display filtered list of common games
+        showCommonGames(commonGames);
+
+      }
+      
+    });
+    scanPanel.add(scanButton);
     
     JButton addButton = new JButton("Add");
     addButton.setFont(new Font("Tahoma", Font.PLAIN, 18));
@@ -176,10 +200,56 @@ public class Gui {
     removeButton.setFont(new Font("Tahoma", Font.PLAIN, 18));
     playerButtonPanel.add(removeButton);
     
-    JTextField addPlayerText = new JTextField();
-    addPlayerText.setText("Enter player name...");
-    addPlayerText.setFont(new Font("Tahoma", Font.ITALIC, 20));
+    final JTextField addPlayerText = new JTextField();
     addPlayerText.setColumns(10);
+    
+    addPlayerText.addFocusListener(new FocusListener() {
+
+      @Override
+      public void focusGained(FocusEvent e) {
+
+        addPlayerText.setText("");
+        addPlayerText.setFont(new Font("Tahoma", Font.PLAIN, 20));
+        
+      }
+
+      @Override
+      public void focusLost(FocusEvent e) {
+        
+        addPlayerText.setText("Enter player name...");
+        addPlayerText.setFont(new Font("Tahoma", Font.ITALIC, 20));
+        
+      }
+      
+    });
+    
+    addPlayerText.addKeyListener(new KeyListener() {
+
+      @Override
+      public void keyTyped(KeyEvent e) {
+      }
+
+      @Override
+      public void keyPressed(KeyEvent e) {
+      }
+
+      @Override
+      public void keyReleased(KeyEvent e) {
+        
+        char c = e.getKeyChar();
+        
+        if (c == KeyEvent.VK_ENTER) {
+          // If enter key pressed and text field not empty then add player to list.
+          if (!addPlayerText.getText().isEmpty()) {
+            playerListTextArea.append(addPlayerText.getText() + "\n");
+            // afterwards clear the text field
+            addPlayerText.setText("");
+          }
+        }
+        
+      }
+      
+    });
     
     JScrollPane playerListScrollPane = new JScrollPane();
     GroupLayout gl_playerPanel = new GroupLayout(playerPanel);
@@ -207,7 +277,8 @@ public class Gui {
           .addContainerGap())
     );
     
-    JTextArea playerListTextArea = new JTextArea();
+    playerListTextArea = new JTextArea();
+    playerListTextArea.setFont(new Font("Tahoma", Font.PLAIN, 18));
     playerListTextArea.setEditable(false);
     playerListScrollPane.setViewportView(playerListTextArea);
     playerPanel.setLayout(gl_playerPanel);
@@ -229,5 +300,9 @@ public class Gui {
     // Final count.
     outputTextArea.append("Total games in common: " + games.size());
 
+  }
+  
+  private List<String> getPlayerNames() {
+    return new ArrayList<String>(Arrays.asList(playerListTextArea.getText().split("\\n")));
   }
 }
