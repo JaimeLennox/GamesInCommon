@@ -17,17 +17,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JFrame;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-
 import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
 import com.github.koraktor.steamcondenser.steam.community.SteamGame;
 import com.github.koraktor.steamcondenser.steam.community.SteamId;
 
 public class GamesInCommon {
-
-	JFrame mainFrame;
 
 	Connection connection = null;
 
@@ -37,14 +31,6 @@ public class GamesInCommon {
 		if (connection == null) {
 			throw new RuntimeException("Connection could not be establised to local database.");
 		}
-		// initialise GUI components
-		mainFrame = new JFrame();
-		mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		mainFrame.setLocationRelativeTo(null);
-		MainPanel mainPanel = new MainPanel(this);
-		mainFrame.add(mainPanel);
-		mainFrame.pack();
-		mainFrame.setVisible(true);
 	}
 
 	/**
@@ -139,30 +125,7 @@ public class GamesInCommon {
 		System.out.println("Total games in common: " + games.size());
 	}
 
-	/**
-	 * Displays all games from a collection in a new graphical interface frame.
-	 * 
-	 * @param games
-	 *            Games to show.
-	 */
-	public void showCommonGames(Collection<SteamGame> games) {
-		// Create frame object
-		JFrame displayFrame = new JFrame();
-		displayFrame.setLocationRelativeTo(mainFrame);
-		// Display content
-		JTextArea displayArea = new JTextArea(40, 30);
-		JScrollPane scrollPane = new JScrollPane(displayArea);
-		displayFrame.add(scrollPane);
-		displayArea.setEditable(false);
-		for (SteamGame i : games) {
-			displayArea.append(i.getName() + "\n");
-		}
-		// Final count
-		displayArea.append("Total games in common: " + games.size());
-		displayFrame.pack();
-		displayFrame.setVisible(true);
 
-	}
 
 	/**
 	 * Creates a list of users from user input.
