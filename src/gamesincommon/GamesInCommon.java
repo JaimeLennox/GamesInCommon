@@ -296,11 +296,15 @@ public class GamesInCommon {
 	 * Merges multiple user game sets together to keep all games that are the same.
 	 * 
 	 * @param userGames
-	 *            A list of user game sets. There must be at least one set in this list.
+	 *            A list of user game sets.
 	 * @return A set containing all common games.
 	 */
 	public Collection<SteamGame> mergeSets(List<Collection<SteamGame>> userGames) {
 
+	  if (userGames.size() == 0) {
+	      return null;
+	  }
+	  
 		Collection<SteamGame> result = userGames.get(0);
 
 		for (int i = 1; i < userGames.size(); i++) {
