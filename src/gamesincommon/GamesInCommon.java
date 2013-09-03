@@ -161,41 +161,58 @@ public class GamesInCommon {
 	public Collection<SteamGame> filterGames(Collection<SteamGame> gameList, List<FilterType> filterList) {
 
 		Collection<SteamGame> result = new HashSet<SteamGame>();
+		// get list of tables
+		ResultSet tableSet = null;
+		Statement s = null;
+		try {
+			s = connection.createStatement();
+			tableSet = s.executeQuery("SELECT name FROM sqlite_master WHERE type='table';");
+		} catch (SQLException e1) {
+			logger.log(Level.SEVERE, e1.getMessage(), e1);
+		}
 
 		for (SteamGame game : gameList) {
 			// first run a query through the local db
-			boolean checkWeb = true;
+			// filtersToCheck tells the following webcheck loop which filters need checking and insertion into the DB
+			Map<FilterType, Boolean> filtersToCheck = new HashMap<FilterType, Boolean>();
+			// default to "needs checking"
+			boolean needsWebCheck = true;
 			try {
-				Statement s = connection.createStatement();
-				// get list of tables
-				ResultSet tableSet = s.executeQuery("SELECT name FROM sqlite_master WHERE type='table';");
 				// query the table that matches the filter
 				while (tableSet.next()) {
+					ResultSet rSet = null;
 					for (FilterType filter : filterList) {
-						// WARNING - This does NOT trigger a webpage update if one or more filters have no DB data, but at least one filter
-						// is TRUE
-						ResultSet rSet = null;
-						if (filter.getValue().equals((tableSet.getString("name")))) {
-							rSet = s.executeQuery("SELECT * FROM [" + tableSet.getString("name") + "] WHERE AppID = '" + game.getAppId()
-									+ "'");
-						}
-						// if rSet.next() indicates a match
-						while ((rSet != null) && (rSet.next())) {
-							// if the game passes the filter and is not already in the result collection, add it
-							if (rSet.getBoolean("HasProperty") && (!result.contains(game))) {
-								result.add(game);
+						// default to "needs checking"
+						filtersToCheck.put(filter, true);
+						// if the game is not already in the result Collection
+						if (!result.contains(game)) {
+							// WARNING - This does NOT trigger web update if one or more filters are TRUE even if some filters have no DB
+							// data
+							if (filter.getValue().equals((tableSet.getString("name")))) {
+								rSet = s.executeQuery("SELECT * FROM [" + tableSet.getString("name") + "] WHERE AppID = '"
+										+ game.getAppId() + "'");
 							}
-							// if there's an entry in the database, no need to check anywhere else
-							checkWeb = false;
-							logger.log(Level.INFO, "[SQL] Checked game '" + game.getName() + "'");
+							// if rSet.next() indicates a match
+							while ((rSet != null) && (rSet.next())) {
+								// if the game passes the filter and is not already in the result collection, add it
+								if (rSet.getBoolean("HasProperty")) {
+									result.add(game);
+								}
+								// if there's an entry in the database, no need to check anywhere else
+								filtersToCheck.put(filter, false);
+								needsWebCheck = false;
+								logger.log(Level.INFO, "[SQL] Checked game '" + game.getName() + "'");
+								rSet.close();
+							}
 						}
 					}
+					rSet.close();
 				}
-			} catch (SQLException e1) {
-			  logger.log(Level.SEVERE, e1.getMessage());
+			} catch (SQLException e2) {
+				logger.log(Level.SEVERE, e2.getMessage());
 			}
-			// if checkWeb never got turned to false, we need to fetch data from the steampowered.com website
-			if (checkWeb) {
+			// if any games need checking, we'll need to send requests to the steampowered.com website for data
+			if (needsWebCheck) {
 				// foundProperties records whether it has or does not have each of the filters
 				HashMap<FilterType, Boolean> foundProperties = new HashMap<FilterType, Boolean>();
 				try (BufferedReader br = new BufferedReader(new InputStreamReader(new URL(
@@ -208,29 +225,34 @@ public class GamesInCommon {
 							foundProperties.put(filter, false);
 							if (line.contains("\"" + filter.getValue() + "\"")) {
 								result.add(game);
-								// success - add to db
-								connection.createStatement().executeUpdate(
-										"INSERT INTO [" + filter.getValue() + "] (AppID, Name, HasProperty) VALUES ('" + game.getAppId()
-												+ "','" + sanitiseInputString(game.getName()) + "', 1)");
+								// success - add to foundProperties as TRUE
 								foundProperties.put(filter, true);
+								// success - add to db
+								// connection.createStatement().executeUpdate(
+								// "INSERT INTO [" + filter.getValue() + "] (AppID, Name, HasProperty) VALUES ('"
+								// + game.getAppId() + "','" + sanitiseInputString(game.getName()) + "', 1)");
+								// foundProperties.put(filter, true);
 							}
 						}
 					}
-					// insert filters returning false as false to the DB
-					for (Map.Entry<FilterType, Boolean> entry : foundProperties.entrySet()) {
-						if (entry.getValue().equals(new Boolean(false))) {
-							connection.createStatement().executeUpdate(
-									"INSERT INTO [" + entry.getKey().toString() + "] (AppID, Name, HasProperty) VALUES ('"
-											+ game.getAppId() + "','" + sanitiseInputString(game.getName()) + "', 0)");
+					// if we have any filters that needed data, match them up with foundProperties and insert them into the database
+					for (Map.Entry<FilterType, Boolean> filterToCheck : filtersToCheck.entrySet()) {
+						if (filterToCheck.getValue().equals(new Boolean(true))) {
+							for (Map.Entry<FilterType, Boolean> entry : foundProperties.entrySet()) {
+								// SQL takes booleans as 1 or 0 intead of TRUE or FALSE
+								int boolVal = (entry.getValue().equals(new Boolean(true))) ? 1 : 0;
+								connection.createStatement().executeUpdate(
+										"INSERT INTO [" + entry.getKey().toString() + "] (AppID, Name, HasProperty) VALUES ('"
+												+ game.getAppId() + "','" + sanitiseInputString(game.getName()) + "', " + boolVal + ")");
+							}
 						}
 					}
 					logger.log(Level.INFO, "[WEB] Checked game '" + game.getName() + "'");
 
-				} catch (IOException | SQLException e) {
-					logger.log(Level.SEVERE, e.getMessage());
+				} catch (IOException | SQLException e3) {
+					logger.log(Level.SEVERE, e3.getMessage(), e3);
 				}
 			}
-
 		}
 		return result;
 	}
@@ -249,17 +271,17 @@ public class GamesInCommon {
 		}
 
 		Collection<SteamGame> result = new ArrayList<SteamGame>();
-		
+
 		int size = 0;
 		int index = 0;
-		
+
 		for (int i = 0; i < userGames.size(); i++) {
-		  if (userGames.get(i).size() > size) {
-		    size = userGames.get(i).size();
-		    index = i;
-		  }
+			if (userGames.get(i).size() > size) {
+				size = userGames.get(i).size();
+				index = i;
+			}
 		}
-		
+
 		result.addAll(userGames.get(index));
 
 		for (int i = 0; i < userGames.size(); i++) {
