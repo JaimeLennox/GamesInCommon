@@ -36,7 +36,7 @@ public class TextPaneHandler extends Handler {
 				Document tempDoc = textPane.getDocument();
 				int offset = tempDoc.getLength();
 				try {
-					tempDoc.insertString(0, getFormatter().format(record), attributes);
+					tempDoc.insertString(offset, getFormatter().format(record), attributes);
 				} catch (BadLocationException e) {
 					e.printStackTrace();
 				}

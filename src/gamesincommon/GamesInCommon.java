@@ -114,7 +114,7 @@ public class GamesInCommon {
 				userGames.add(getGames(name));
 				logger.log(Level.INFO, "Added user " + name.getNickname() + " (" + name.getSteamId64() + ").");
 			} catch (SteamCondenserException e) {
-				logger.log(Level.SEVERE, e.getMessage(), e);
+				logger.log(Level.SEVERE, e.getMessage());
 				return null;
 			}
 		}
@@ -228,7 +228,7 @@ public class GamesInCommon {
 					logger.log(Level.INFO, "[WEB] Checked game '" + game.getName() + "'");
 
 				} catch (IOException | SQLException e) {
-					logger.log(Level.SEVERE, e.getMessage(), e);
+					logger.log(Level.SEVERE, e.getMessage());
 				}
 			}
 
