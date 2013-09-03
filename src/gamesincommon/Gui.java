@@ -15,6 +15,7 @@ import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.GroupLayout;
@@ -319,26 +320,28 @@ public class Gui {
    *            Games to show.
    */
   public void showCommonGames(final Collection<SteamGame> games) {
+    
+    List<String> gameList = new ArrayList<String>();
+    
+    for (SteamGame steamGame: games) {
+      gameList.add(steamGame.getName() + "\n");
+    }
+    
+    Collections.sort(gameList);
+    
+    // Final count.
+    gameList.add("Total games in common: " + games.size());
+    
 
-    for (final SteamGame i : games) {
+    for (final String str : gameList) {
       SwingUtilities.invokeLater(new Runnable() {
         @Override
         public void run() {
-          outputTextArea.append(i.getName() + "\n");
-          
+          outputTextArea.append(str);
         }
       });
       
     }
-    
-    // Final count.
-    SwingUtilities.invokeLater(new Runnable() {
-      @Override
-      public void run() {
-        outputTextArea.append("Total games in common: " + games.size());
-      }
-    });
-    
 
   }
   
