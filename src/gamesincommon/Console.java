@@ -58,7 +58,7 @@ public class Console {
    * @param games
    *            The collection to print
    */
-  public void displayCommonGames(Collection<SteamGame> games) {
+  private void displayCommonGames(Collection<SteamGame> games) {
     // Lists games in common.
     for (SteamGame i : games) {
       System.out.println(i.getName());
