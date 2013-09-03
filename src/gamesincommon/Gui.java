@@ -190,7 +190,6 @@ public class Gui {
 		gl_optionsPanel.setVerticalGroup(gl_optionsPanel.createParallelGroup(Alignment.LEADING).addGroup(
 				gl_optionsPanel.createSequentialGroup().addContainerGap()
 						.addComponent(filterPanel, GroupLayout.DEFAULT_SIZE, 32, Short.MAX_VALUE).addContainerGap()));
-		filterPanel.setLayout(new GridLayout(1, 2, 0, 0));
 		optionsPanel.setLayout(gl_optionsPanel);
 
 		JPanel playerButtonPanel = new JPanel();

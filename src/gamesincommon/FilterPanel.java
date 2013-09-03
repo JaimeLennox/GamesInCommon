@@ -16,7 +16,7 @@ public class FilterPanel extends JPanel {
 	private ArrayList<JCheckBox> filterCheckBoxes;
 
 	public FilterPanel() {
-		this.setLayout(new GridLayout(0, 1));
+		this.setLayout(new GridLayout(0, 2));
 		// creates checkbox list of all available filter types
 		filterCheckBoxes = new ArrayList<JCheckBox>();
 		for (FilterType filter : FilterType.values()) {
