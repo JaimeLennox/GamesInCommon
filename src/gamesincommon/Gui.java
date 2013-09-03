@@ -426,7 +426,7 @@ public class Gui {
 	}
 
 	private void removeName() {
-		if (playerList.getSelectedIndex() > 0) {
+		if (playerList.getSelectedIndex() > -1) {
 			// remove the selected player from the SteamId list
 			playerIdList.remove(playerList.getSelectedIndex());
 			// and also from the JList

@@ -121,7 +121,7 @@ public class GamesInCommon {
 			try {
 				return SteamId.create(Long.parseLong(nameToCheck));
 			} catch (SteamCondenserException | NumberFormatException e2) {
-				throw e2;
+				throw e1;
 			}
 		}
 	}
