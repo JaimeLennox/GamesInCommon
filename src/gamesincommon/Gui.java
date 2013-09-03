@@ -424,7 +424,7 @@ public class Gui {
 		Collections.sort(gameList);
 
 		// Final count.
-		gameList.add("Total games in common: " + games.size());
+		logger.log(Level.INFO, "Total games in common: " + games.size());
 
 		for (final String str : gameList) {
 			SwingUtilities.invokeLater(new Runnable() {
