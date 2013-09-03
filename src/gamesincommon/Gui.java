@@ -371,6 +371,8 @@ public class Gui {
 	 *            Games to show.
 	 */
 	public void showCommonGames(final Collection<SteamGame> games) {
+	  
+	  if (games == null) return;
 
 		List<String> gameList = new ArrayList<String>();
 

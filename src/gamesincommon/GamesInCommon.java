@@ -103,7 +103,8 @@ public class GamesInCommon {
 				userGames.add(getGames(name));
 				System.out.println("Added user " + name.getNickname() + " (" + name.getSteamId64() + ").");
 			} catch (SteamCondenserException e) {
-				e.printStackTrace();
+				System.err.println(e.getMessage());
+				return null;
 			}
 		}
 
