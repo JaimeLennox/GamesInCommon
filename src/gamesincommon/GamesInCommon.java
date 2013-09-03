@@ -120,8 +120,8 @@ public class GamesInCommon {
 		} catch (SteamCondenserException e1) {
 			try {
 				return SteamId.create(Long.parseLong(nameToCheck));
-			} catch (SteamCondenserException e2) {
-				throw e1;
+			} catch (SteamCondenserException | NumberFormatException e2) {
+				throw e2;
 			}
 		}
 	}

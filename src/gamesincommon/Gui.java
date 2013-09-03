@@ -408,7 +408,7 @@ public class Gui {
 	private void addName() {
 		// If text field not empty then add player to list.
 		// verify with Steam that the entry is a valid Steam ID and throw an error if not
-	  String name = addPlayerText.getText();
+		String name = addPlayerText.getText();
 		if ((!name.isEmpty()) && (!name.equals("Enter player name..."))) {
 			try {
 				SteamId temp = gamesInCommon.checkSteamId(name);
@@ -426,10 +426,12 @@ public class Gui {
 	}
 
 	private void removeName() {
-		// remove the selected player from the SteamId list
-		playerIdList.remove(playerList.getSelectedIndex());
-		// and also from the JList
-		playerListModel.removeElement(playerList.getSelectedValue());
+		if (playerList.getSelectedIndex() > 0) {
+			// remove the selected player from the SteamId list
+			playerIdList.remove(playerList.getSelectedIndex());
+			// and also from the JList
+			playerListModel.removeElement(playerList.getSelectedValue());
+		}
 	}
 
 	private void scan() {
