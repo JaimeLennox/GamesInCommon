@@ -16,6 +16,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
@@ -43,19 +47,21 @@ public class Gui {
 	final static Font font = new Font("Tahoma", Font.PLAIN, 18);
 
 	private JFrame gamesInCommonFrame;
-	
+
 	private JList<String> outputList;
 	private JList<String> playerList;
-	
+
 	private DefaultListModel<String> outputListModel;
 	private DefaultListModel<String> playerListModel;
-	
+
 	private ArrayList<SteamId> playerIdList;
 
 	private JTextField addPlayerText;
 	private FilterPanel filterPanel;
 
 	private GamesInCommon gamesInCommon;
+
+	private Logger logger;
 
 	/**
 	 * Launch the application.
@@ -65,8 +71,8 @@ public class Gui {
 			public void run() {
 				try {
 					Gui window = new Gui();
+					window.initialize();
 					window.gamesInCommonFrame.setVisible(true);
-					window.gamesInCommon = new GamesInCommon();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -85,6 +91,29 @@ public class Gui {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+		// create GamesInCommon
+		gamesInCommon = new GamesInCommon();
+		// logger initialisation
+		logger = gamesInCommon.getLogger();
+		// remove handlers
+		removeHandlers(logger.getParent());
+		removeHandlers(logger);
+		// console logging
+		ConsoleHandler cHandler = new ConsoleHandler();
+		cHandler.setLevel(Level.FINEST);
+		// logging to GUI
+		TextPaneHandler tpHandler = new TextPaneHandler();
+		tpHandler.setLevel(Level.INFO);
+		// attach handlers
+		logger.addHandler(cHandler);
+		logger.addHandler(tpHandler);
+		// set formats of handlers to be unified
+		LogFormatter formatter = new LogFormatter();
+		Handler[] handlers = logger.getHandlers();
+		for (Handler handler : handlers) {
+			handler.setFormatter(formatter);
+		}
+
 		gamesInCommonFrame = new JFrame();
 		gamesInCommonFrame.setTitle("Games in Common");
 		gamesInCommonFrame.setBounds(100, 100, 900, 400);
@@ -176,13 +205,10 @@ public class Gui {
 		gl_consolePanel.setVerticalGroup(gl_consolePanel.createParallelGroup(Alignment.LEADING).addComponent(consoleScrollPane,
 				GroupLayout.PREFERRED_SIZE, 21, Short.MAX_VALUE));
 
-		JTextPane consoleText = new JTextPane();
+		JTextPane consoleText = tpHandler.getTextPane();
 		consoleScrollPane.setViewportView(consoleText);
 		consoleText.setFont(new Font("Tahoma", Font.PLAIN, 18));
 
-		MessageConsole messageConsole = new MessageConsole(consoleText);
-		messageConsole.redirectOut(null, System.out);
-		messageConsole.redirectErr(Color.red, System.err);
 		consolePanel.setLayout(gl_consolePanel);
 
 		filterPanel = new FilterPanel();
@@ -367,15 +393,28 @@ public class Gui {
 	}
 
 	/**
+	 * Removes all handlers for the given logger
+	 * 
+	 * @param logger
+	 *            to clear handlers for
+	 */
+	private void removeHandlers(Logger loggerToClear) {
+		Handler[] handlers = loggerToClear.getHandlers();
+		for (Handler handler : handlers) {
+			loggerToClear.removeHandler(handler);
+		}
+	}
+
+	/**
 	 * Displays all games from a collection in a new graphical interface frame.
 	 * 
 	 * @param games
 	 *            Games to show.
 	 */
 	public void showCommonGames(final Collection<SteamGame> games) {
-	  
-	  if (games == null) return;
 
+		if (games == null)
+			return;
 		List<String> gameList = new ArrayList<String>();
 
 		for (SteamGame steamGame : games) {
@@ -421,7 +460,7 @@ public class Gui {
 				// then add to the JList
 				playerListModel.addElement(temp.getNickname());
 			} catch (SteamCondenserException e) {
-				System.err.println("\"" + name + "\": " + e.getMessage());
+				logger.log(Level.SEVERE, "\"" + name + "\": " + e.getMessage());
 			}
 
 			// Afterwards clear the text field.
@@ -439,9 +478,8 @@ public class Gui {
 	}
 
 	private void scan() {
+		logger.log(Level.INFO, "Starting scan.");
 
-		System.out.println("Starting scan.");
-		
 		outputListModel.clear();
 
 		// Find common games.
@@ -450,9 +488,9 @@ public class Gui {
 		// Apply filters, if applicable.
 		List<FilterType> filters = filterPanel.getFilters();
 		if (!filters.isEmpty()) {
-			System.out.println("Filtering games... ");
+			logger.log(Level.INFO, "Filtering games... ");
 			commonGames = gamesInCommon.filterGames(commonGames, filters);
-			System.out.println("Filtering complete.");
+			logger.log(Level.INFO, "Filtering complete.");
 		}
 
 		// Display filtered list of common games.

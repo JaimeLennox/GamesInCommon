@@ -16,6 +16,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
 import com.github.koraktor.steamcondenser.steam.community.SteamGame;
@@ -25,12 +27,21 @@ public class GamesInCommon {
 
 	Connection connection = null;
 
+	private Logger logger;
+
 	public GamesInCommon() {
+		// initialise logger
+		logger = Logger.getLogger(GamesInCommon.class.getName());
+		logger.setLevel(Level.ALL);
 		// initialise database connector
 		connection = InitialDBCheck();
 		if (connection == null) {
 			throw new RuntimeException("Connection could not be establised to local database.");
 		}
+	}
+
+	public Logger getLogger() {
+		return logger;
 	}
 
 	/**
@@ -62,7 +73,7 @@ public class GamesInCommon {
 					tableList.add(resultSet.getString("name"));
 				}
 			} else {
-				System.out.println("New database created.");
+				logger.log(Level.INFO, "New database created.");
 			}
 			// check all filtertypes have a corresponding table, create if one if not present
 			// skip check and create if the database is new
@@ -82,7 +93,7 @@ public class GamesInCommon {
 				}
 			}
 		} catch (ClassNotFoundException | SQLException e) {
-			e.printStackTrace();
+			logger.log(Level.SEVERE, e.getMessage(), e);
 		}
 		return result;
 	}
@@ -101,16 +112,15 @@ public class GamesInCommon {
 		for (SteamId name : users) {
 			try {
 				userGames.add(getGames(name));
-				System.out.println("Added user " + name.getNickname() + " (" + name.getSteamId64() + ").");
+				logger.log(Level.INFO, "Added user " + name.getNickname() + " (" + name.getSteamId64() + ").");
 			} catch (SteamCondenserException e) {
-				System.err.println(e.getMessage());
+				logger.log(Level.SEVERE, e.getMessage());
 				return null;
 			}
 		}
 
-		System.out.print("Finding common games... ");
 		Collection<SteamGame> commonGames = mergeSets(userGames);
-		System.out.println("found.");
+		logger.log(Level.INFO, "Search complete.");
 
 		return commonGames;
 	}
@@ -177,7 +187,7 @@ public class GamesInCommon {
 							}
 							// if there's an entry in the database, no need to check anywhere else
 							checkWeb = false;
-							System.out.println("[SQL] Checked game '" + game.getName() + "'");
+							logger.log(Level.INFO, "[SQL] Checked game '" + game.getName() + "'");
 						}
 					}
 				}
@@ -214,10 +224,10 @@ public class GamesInCommon {
 											+ game.getAppId() + "','" + sanitiseInputString(game.getName()) + "', 0)");
 						}
 					}
-					System.out.println("[WEB] Checked game '" + game.getName() + "'");
+					logger.log(Level.INFO, "[WEB] Checked game '" + game.getName() + "'");
 
 				} catch (IOException | SQLException e) {
-					e.printStackTrace();
+					logger.log(Level.SEVERE, e.getMessage());
 				}
 			}
 
