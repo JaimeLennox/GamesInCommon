@@ -101,12 +101,16 @@ public class GamesInCommon {
 		for (String name : users) {
 			try {
 				userGames.add(getGames(SteamId.create(name)));
+				System.out.println("Added user " + name + ".");
 			} catch (SteamCondenserException e) {
 				e.printStackTrace();
 			}
 		}
 
+		System.out.print("Finding common games... ");
 		Collection<SteamGame> commonGames = mergeSets(userGames);
+		System.out.println("found.");
+		
 		return commonGames;
 	}
 

@@ -45,7 +45,7 @@ public class Gui {
   private JTextField addPlayerText;
   private FilterPanel filterPanel;
   
-  private GamesInCommon gamesInCommon = new GamesInCommon();
+  private GamesInCommon gamesInCommon;
 
   /**
    * Launch the application.
@@ -56,6 +56,7 @@ public class Gui {
         try {
           Gui window = new Gui();
           window.gamesInCommonFrame.setVisible(true);
+          window.gamesInCommon = new GamesInCommon();
         } catch (Exception e) {
           e.printStackTrace();
         }
@@ -361,6 +362,8 @@ public class Gui {
   }
   
   private void scan() {
+    
+    System.out.println("Starting scan.");
   
     // Find common games.
     Collection<SteamGame> commonGames = gamesInCommon.findCommonGames(getPlayerNames());
@@ -368,7 +371,9 @@ public class Gui {
     // Apply filters, if applicable.
     List<FilterType> filters = filterPanel.getFilters();
     if (!filters.isEmpty()) {
+      System.out.println("Filtering games... ");
       commonGames = gamesInCommon.filterGames(commonGames, filters);
+      System.out.println("Filtering complete.");
     }
     
     // Display filtered list of common games.
