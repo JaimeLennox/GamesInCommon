@@ -93,19 +93,14 @@ public class Gui {
 		gamesInCommon = new GamesInCommon();
 		// logger initialisation
 		logger = gamesInCommon.getLogger();
-		// remove parent handlers
-		Handler[] parentHandlers = logger.getParent().getHandlers();
-		for (Handler handler : parentHandlers) {
-			logger.getParent().removeHandler(handler);
-		}
-		// reference to tpHandler used later
-		TextPaneHandler tpHandler = null;
-		ConsoleHandler cHandler = null;
+		// remove handlers
+		removeHandlers(logger.getParent());
+		removeHandlers(logger);
 		// console logging
-		cHandler = new ConsoleHandler();
+		ConsoleHandler cHandler = new ConsoleHandler();
 		cHandler.setLevel(Level.FINEST);
 		// logging to GUI
-		tpHandler = new TextPaneHandler();
+		TextPaneHandler tpHandler = new TextPaneHandler();
 		tpHandler.setLevel(Level.INFO);
 		// attach handlers
 		logger.addHandler(cHandler);
@@ -393,6 +388,17 @@ public class Gui {
 		playerListScrollPane.setViewportView(playerList);
 		playerPanel.setLayout(gl_playerPanel);
 		gamesInCommonFrame.getContentPane().setLayout(groupLayout);
+	}
+	
+	/**
+	 * Removes all handlers for the given logger
+	 * @param logger to clear handlers for
+	 */
+	private void removeHandlers(Logger loggerToClear) {
+		Handler[] handlers = loggerToClear.getHandlers();
+		for (Handler handler : handlers) {
+			loggerToClear.removeHandler(handler);
+		}		
 	}
 
 	/**

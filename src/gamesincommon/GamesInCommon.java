@@ -119,9 +119,8 @@ public class GamesInCommon {
 			}
 		}
 
-		System.out.print("Finding common games... ");
 		Collection<SteamGame> commonGames = mergeSets(userGames);
-		logger.log(Level.INFO, "found.");
+		logger.log(Level.INFO, "Search complete.");
 
 		return commonGames;
 	}
