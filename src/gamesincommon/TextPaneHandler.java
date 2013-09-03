@@ -1,20 +1,26 @@
 package gamesincommon;
 
+import java.awt.Color;
+import java.awt.Font;
 import java.util.logging.Handler;
+import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
+import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.Document;
 import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 
 public class TextPaneHandler extends Handler {
 
 	private JTextPane textPane;
-	
-	private SimpleAttributeSet attributes;
+
+	private SimpleAttributeSet normalAttributes;
+	private SimpleAttributeSet errorAttributes;
 
 	public TextPaneHandler() {
 		super();
@@ -22,9 +28,13 @@ public class TextPaneHandler extends Handler {
 		textPane.setEditable(false);
 		DefaultCaret caret = (DefaultCaret) textPane.getCaret();
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-		
-		attributes = new SimpleAttributeSet();
-		// #TODO: Set attributes so the font size isn't massive
+
+		normalAttributes = new SimpleAttributeSet();
+		StyleConstants.setFontSize(normalAttributes, 12);
+
+		errorAttributes = new SimpleAttributeSet();
+		StyleConstants.setFontSize(errorAttributes, 12);
+		StyleConstants.setForeground(errorAttributes, Color.RED);
 	}
 
 	@Override
@@ -36,7 +46,12 @@ public class TextPaneHandler extends Handler {
 				Document tempDoc = textPane.getDocument();
 				int offset = tempDoc.getLength();
 				try {
-					tempDoc.insertString(offset, getFormatter().format(record), attributes);
+					// if the record is Level.SEVERE then print in RED
+					if (record.getLevel().equals(Level.SEVERE)) {
+						tempDoc.insertString(offset, getFormatter().format(record), errorAttributes);
+					} else {
+						tempDoc.insertString(offset, getFormatter().format(record), normalAttributes);
+					}
 				} catch (BadLocationException e) {
 					e.printStackTrace();
 				}
@@ -55,7 +70,7 @@ public class TextPaneHandler extends Handler {
 
 	@Override
 	public void flush() {
-		// no buffering takes place (input is appended straight to textPane thus no action is needed during flush) 
+		// no buffering takes place (input is appended straight to textPane thus no action is needed during flush)
 	}
 
 }
