@@ -27,6 +27,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.SoftBevelBorder;
 import javax.swing.border.TitledBorder;
@@ -41,6 +42,7 @@ public class Gui {
   private JTextArea outputTextArea;
   private JTextArea playerListTextArea;
   private JTextField addPlayerText;
+  private FilterPanel filterPanel;
   
   private GamesInCommon gamesInCommon = new GamesInCommon();
 
@@ -155,7 +157,7 @@ public class Gui {
     messageConsole.redirectErr(Color.red, System.err);
     consolePanel.setLayout(gl_consolePanel);
     
-    final FilterPanel filterPanel = new FilterPanel();
+    filterPanel = new FilterPanel();
     GroupLayout gl_optionsPanel = new GroupLayout(optionsPanel);
     gl_optionsPanel.setHorizontalGroup(
       gl_optionsPanel.createParallelGroup(Alignment.LEADING)
@@ -179,23 +181,19 @@ public class Gui {
     
     JButton scanButton = new JButton("Scan");
     scanButton.setFont(new Font("Tahoma", Font.PLAIN, 18));
+    
     scanButton.addActionListener(new ActionListener() {
-
       @Override
       public void actionPerformed(ActionEvent e) {
-        // find common games
-        Collection<SteamGame> commonGames = gamesInCommon.findCommonGames(getPlayerNames());
-        // apply filters, if applicable
-        List<FilterType> filters = filterPanel.getFilters();
-        if (!filters.isEmpty()) {
-          commonGames = gamesInCommon.filterGames(commonGames, filters);
-        }
-        // display filtered list of common games
-        showCommonGames(commonGames);
-
+        Thread scanThread = new Thread() {
+          public void run() {
+            scan();
+          }
+        };
+        scanThread.start();
       }
-      
     });
+    
     scanPanel.add(scanButton);
     
     JButton addButton = new JButton("Add");
@@ -320,14 +318,27 @@ public class Gui {
    * @param games
    *            Games to show.
    */
-  public void showCommonGames(Collection<SteamGame> games) {
+  public void showCommonGames(final Collection<SteamGame> games) {
 
-    for (SteamGame i : games) {
-      outputTextArea.append(i.getName() + "\n");
+    for (final SteamGame i : games) {
+      SwingUtilities.invokeLater(new Runnable() {
+        @Override
+        public void run() {
+          outputTextArea.append(i.getName() + "\n");
+          
+        }
+      });
+      
     }
     
     // Final count.
-    outputTextArea.append("Total games in common: " + games.size());
+    SwingUtilities.invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        outputTextArea.append("Total games in common: " + games.size());
+      }
+    });
+    
 
   }
   
@@ -344,5 +355,20 @@ public class Gui {
       // Afterwards clear the text field.
       addPlayerText.setText("");
     }
+  }
+  
+  private void scan() {
+  
+    // Find common games.
+    Collection<SteamGame> commonGames = gamesInCommon.findCommonGames(getPlayerNames());
+    
+    // Apply filters, if applicable.
+    List<FilterType> filters = filterPanel.getFilters();
+    if (!filters.isEmpty()) {
+      commonGames = gamesInCommon.filterGames(commonGames, filters);
+    }
+    
+    // Display filtered list of common games.
+    showCommonGames(commonGames);
   }
 }
