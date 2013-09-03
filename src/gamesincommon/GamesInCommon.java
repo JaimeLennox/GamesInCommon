@@ -73,7 +73,7 @@ public class GamesInCommon {
 					tableList.add(resultSet.getString("name"));
 				}
 			} else {
-				System.out.println("New database created.");
+				logger.log(Level.INFO, "New database created.");
 			}
 			// check all filtertypes have a corresponding table, create if one if not present
 			// skip check and create if the database is new
@@ -112,16 +112,16 @@ public class GamesInCommon {
 		for (SteamId name : users) {
 			try {
 				userGames.add(getGames(name));
-				System.out.println("Added user " + name.getNickname() + " (" + name.getSteamId64() + ").");
+				logger.log(Level.INFO, "Added user " + name.getNickname() + " (" + name.getSteamId64() + ").");
 			} catch (SteamCondenserException e) {
-				System.err.println(e.getMessage());
+				logger.log(Level.SEVERE, e.getMessage(), e);
 				return null;
 			}
 		}
 
 		System.out.print("Finding common games... ");
 		Collection<SteamGame> commonGames = mergeSets(userGames);
-		System.out.println("found.");
+		logger.log(Level.INFO, "found.");
 
 		return commonGames;
 	}
@@ -188,7 +188,7 @@ public class GamesInCommon {
 							}
 							// if there's an entry in the database, no need to check anywhere else
 							checkWeb = false;
-							System.out.println("[SQL] Checked game '" + game.getName() + "'");
+							logger.log(Level.INFO, "[SQL] Checked game '" + game.getName() + "'");
 						}
 					}
 				}
@@ -225,7 +225,7 @@ public class GamesInCommon {
 											+ game.getAppId() + "','" + sanitiseInputString(game.getName()) + "', 0)");
 						}
 					}
-					System.out.println("[WEB] Checked game '" + game.getName() + "'");
+					logger.log(Level.INFO, "[WEB] Checked game '" + game.getName() + "'");
 
 				} catch (IOException | SQLException e) {
 					logger.log(Level.SEVERE, e.getMessage(), e);

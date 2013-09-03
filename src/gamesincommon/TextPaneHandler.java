@@ -16,8 +16,6 @@ public class TextPaneHandler extends Handler {
 	
 	private SimpleAttributeSet attributes;
 
-	//private JScrollPane jsPane;
-
 	public TextPaneHandler() {
 		super();
 		textPane = new JTextPane();
@@ -26,6 +24,7 @@ public class TextPaneHandler extends Handler {
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 		
 		attributes = new SimpleAttributeSet();
+		// #TODO: Set attributes so the font size isn't massive
 	}
 
 	@Override
@@ -37,7 +36,7 @@ public class TextPaneHandler extends Handler {
 				Document tempDoc = textPane.getDocument();
 				int offset = tempDoc.getLength();
 				try {
-					tempDoc.insertString(offset, getFormatter().format(record), attributes);
+					tempDoc.insertString(0, getFormatter().format(record), attributes);
 				} catch (BadLocationException e) {
 					e.printStackTrace();
 				}
@@ -56,7 +55,7 @@ public class TextPaneHandler extends Handler {
 
 	@Override
 	public void flush() {
-		// no buffering takes place (input is appended straight to textPane thus no action is needed during flush
+		// no buffering takes place (input is appended straight to textPane thus no action is needed during flush) 
 	}
 
 }
