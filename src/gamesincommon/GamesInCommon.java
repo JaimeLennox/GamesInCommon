@@ -192,7 +192,7 @@ public class GamesInCommon {
 					}
 				}
 			} catch (SQLException e1) {
-				e1.printStackTrace();
+			  logger.log(Level.SEVERE, e1.getMessage());
 			}
 			// if checkWeb never got turned to false, we need to fetch data from the steampowered.com website
 			if (checkWeb) {
