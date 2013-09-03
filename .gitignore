@@ -9,3 +9,7 @@
 .classpath
 .settings
 /bin
+
+
+# Local DB file #
+gamedata.db
