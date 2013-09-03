@@ -9,6 +9,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,6 +38,7 @@ public class Gui {
   private JFrame gamesInCommonFrame;
   private JTextArea outputTextArea;
   private JTextArea playerListTextArea;
+  private JTextField addPlayerText;
   
   private GamesInCommon gamesInCommon = new GamesInCommon();
 
@@ -194,13 +197,39 @@ public class Gui {
     
     JButton addButton = new JButton("Add");
     addButton.setFont(new Font("Tahoma", Font.PLAIN, 18));
+    
+    addButton.addMouseListener(new MouseListener() {
+
+      @Override
+      public void mouseClicked(MouseEvent e) {
+        addName();
+      }
+
+      @Override
+      public void mousePressed(MouseEvent e) {
+      }
+
+      @Override
+      public void mouseReleased(MouseEvent e) {
+      }
+
+      @Override
+      public void mouseEntered(MouseEvent e) {
+      }
+
+      @Override
+      public void mouseExited(MouseEvent e) {
+      }
+      
+    });
+    
     playerButtonPanel.add(addButton);
     
     JButton removeButton = new JButton("Remove");
     removeButton.setFont(new Font("Tahoma", Font.PLAIN, 18));
     playerButtonPanel.add(removeButton);
     
-    final JTextField addPlayerText = new JTextField();
+    addPlayerText = new JTextField();
     addPlayerText.setColumns(10);
     
     addPlayerText.addFocusListener(new FocusListener() {
@@ -216,8 +245,10 @@ public class Gui {
       @Override
       public void focusLost(FocusEvent e) {
         
-        addPlayerText.setText("Enter player name...");
-        addPlayerText.setFont(new Font("Tahoma", Font.ITALIC, 20));
+        if (addPlayerText.getText().equals("")) {
+          addPlayerText.setText("Enter player name...");
+          addPlayerText.setFont(new Font("Tahoma", Font.ITALIC, 20));
+        }
         
       }
       
@@ -239,12 +270,7 @@ public class Gui {
         char c = e.getKeyChar();
         
         if (c == KeyEvent.VK_ENTER) {
-          // If enter key pressed and text field not empty then add player to list.
-          if (!addPlayerText.getText().isEmpty()) {
-            playerListTextArea.append(addPlayerText.getText() + "\n");
-            // afterwards clear the text field
-            addPlayerText.setText("");
-          }
+          addName();
         }
         
       }
@@ -304,5 +330,16 @@ public class Gui {
   
   private List<String> getPlayerNames() {
     return new ArrayList<String>(Arrays.asList(playerListTextArea.getText().split("\\n")));
+  }
+  
+  private void addName() {
+    
+    // If text field not empty then add player to list.
+    if (!addPlayerText.getText().isEmpty()) {
+      playerListTextArea.append(addPlayerText.getText() + "\n");
+      
+      // Afterwards clear the text field.
+      addPlayerText.setText("");
+    }
   }
 }
