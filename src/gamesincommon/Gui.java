@@ -25,7 +25,6 @@ import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.LayoutStyle.ComponentPlacement;
@@ -44,10 +43,13 @@ public class Gui {
 	final static Font font = new Font("Tahoma", Font.PLAIN, 18);
 
 	private JFrame gamesInCommonFrame;
-	private JTextArea outputTextArea;
+	
+	private JList<String> outputList;
 	private JList<String> playerList;
-	// playerListModel is for display only - playerIdList is the real thing
+	
+	private DefaultListModel<String> outputListModel;
 	private DefaultListModel<String> playerListModel;
+	
 	private ArrayList<SteamId> playerIdList;
 
 	private JTextField addPlayerText;
@@ -160,9 +162,10 @@ public class Gui {
 		JScrollPane outputScrollPane = new JScrollPane();
 		outputPanel.add(outputScrollPane);
 
-		outputTextArea = new JTextArea();
-		outputTextArea.setFont(new Font("Tahoma", Font.PLAIN, 18));
-		outputScrollPane.setViewportView(outputTextArea);
+		outputListModel = new DefaultListModel<String>();
+		outputList = new JList<String>(outputListModel);
+		outputList.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		outputScrollPane.setViewportView(outputList);
 		scanPanel.setLayout(new GridLayout(0, 1, 0, 0));
 
 		JScrollPane consoleScrollPane = new JScrollPane();
@@ -388,7 +391,7 @@ public class Gui {
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					outputTextArea.append(str);
+					outputListModel.addElement(str);
 				}
 			});
 
@@ -396,7 +399,7 @@ public class Gui {
 
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
-				outputTextArea.setCaretPosition(0);
+				outputList.setSelectedIndex(0);
 			}
 		});
 
@@ -438,6 +441,8 @@ public class Gui {
 	private void scan() {
 
 		System.out.println("Starting scan.");
+		
+		outputListModel.clear();
 
 		// Find common games.
 		Collection<SteamGame> commonGames = gamesInCommon.findCommonGames(getPlayerIDs());
