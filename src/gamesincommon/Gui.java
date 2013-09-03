@@ -13,7 +13,6 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +29,6 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
@@ -410,15 +408,16 @@ public class Gui {
 	private void addName() {
 		// If text field not empty then add player to list.
 		// verify with Steam that the entry is a valid Steam ID and throw an error if not
-		if ((!addPlayerText.getText().isEmpty()) && (!addPlayerText.getText().equals("Enter player name..."))) {
+	  String name = addPlayerText.getText();
+		if ((!name.isEmpty()) && (!name.equals("Enter player name..."))) {
 			try {
-				SteamId temp = gamesInCommon.checkSteamId(addPlayerText.getText());
+				SteamId temp = gamesInCommon.checkSteamId(name);
 				// add to the list of SteamIds
 				playerIdList.add(temp);
 				// then add to the JList
 				playerListModel.addElement(temp.getNickname());
 			} catch (SteamCondenserException e) {
-				System.err.println(e.getMessage());
+				System.err.println("\"" + name + "\": " + e.getMessage());
 			}
 
 			// Afterwards clear the text field.
