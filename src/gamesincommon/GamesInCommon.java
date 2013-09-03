@@ -16,6 +16,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
 import com.github.koraktor.steamcondenser.steam.community.SteamGame;
@@ -25,12 +27,21 @@ public class GamesInCommon {
 
 	Connection connection = null;
 
+	private Logger logger;
+
 	public GamesInCommon() {
+		// initialise logger
+		logger = Logger.getLogger(GamesInCommon.class.getName());
+		logger.setLevel(Level.ALL);
 		// initialise database connector
 		connection = InitialDBCheck();
 		if (connection == null) {
 			throw new RuntimeException("Connection could not be establised to local database.");
 		}
+	}
+
+	public Logger getLogger() {
+		return logger;
 	}
 
 	/**
@@ -82,7 +93,7 @@ public class GamesInCommon {
 				}
 			}
 		} catch (ClassNotFoundException | SQLException e) {
-			e.printStackTrace();
+			logger.log(Level.SEVERE, e.getMessage(), e);
 		}
 		return result;
 	}
@@ -217,7 +228,7 @@ public class GamesInCommon {
 					System.out.println("[WEB] Checked game '" + game.getName() + "'");
 
 				} catch (IOException | SQLException e) {
-					e.printStackTrace();
+					logger.log(Level.SEVERE, e.getMessage(), e);
 				}
 			}
 
