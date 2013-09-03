@@ -111,53 +111,6 @@ public class GamesInCommon {
 	}
 
 	/**
-	 * Displays all games from a collection on console output
-	 * 
-	 * @param games
-	 *            The collection to print
-	 */
-	public void displayCommonGames(Collection<SteamGame> games) {
-		// Lists games in common.
-		for (SteamGame i : games) {
-			System.out.println(i.getName());
-		}
-		// Final count
-		System.out.println("Total games in common: " + games.size());
-	}
-
-
-
-	/**
-	 * Creates a list of users from user input.
-	 * 
-	 * @return The list of user names.
-	 */
-	public List<String> getUsers() {
-
-		List<String> users = new ArrayList<String>();
-
-		System.out.println("Enter users one by one, typing 'FIN' when complete:");
-
-		try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in));) {
-
-			String input;
-			input = br.readLine();
-
-			while (!input.equals("FIN")) {
-
-				users.add(input);
-				input = br.readLine();
-
-			}
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		return users;
-	}
-
-	/**
 	 * Finds all games from the given steam user.
 	 * 
 	 * @param sId
@@ -282,11 +235,4 @@ public class GamesInCommon {
 		return input.replace("'", "''");
 	}
 
-	public static void main(String[] args) {
-
-		GamesInCommon gamesInCommon = new GamesInCommon();
-		// List<String> users = gamesInCommon.getUsers();
-		// gamesInCommon.displayCommonGames(gamesInCommon.findCommonGames(users));
-
-	}
 }
