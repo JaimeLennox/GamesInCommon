@@ -343,6 +343,12 @@ public class Gui {
       });
       
     }
+    
+    SwingUtilities.invokeLater(new Runnable() {
+       public void run() { 
+          outputTextArea.setCaretPosition(0);
+       }
+    });
 
   }
   
