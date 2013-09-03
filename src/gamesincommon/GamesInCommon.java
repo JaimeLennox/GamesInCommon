@@ -238,9 +238,21 @@ public class GamesInCommon {
 			return null;
 		}
 
-		Collection<SteamGame> result = userGames.get(0);
+		Collection<SteamGame> result = new ArrayList<SteamGame>();
+		
+		int size = 0;
+		int index = 0;
+		
+		for (int i = 0; i < userGames.size(); i++) {
+		  if (userGames.get(i).size() > size) {
+		    size = userGames.get(i).size();
+		    index = i;
+		  }
+		}
+		
+		result.addAll(userGames.get(index));
 
-		for (int i = 1; i < userGames.size(); i++) {
+		for (int i = 0; i < userGames.size(); i++) {
 			result.retainAll(userGames.get(i));
 		}
 
