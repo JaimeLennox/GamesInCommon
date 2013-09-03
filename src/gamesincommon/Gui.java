@@ -51,7 +51,7 @@ public class Gui {
 	// playerListModel is for display only - playerIdList is the real thing
 	private DefaultListModel<String> playerListModel;
 	private ArrayList<SteamId> playerIdList;
-	
+
 	private JTextField addPlayerText;
 	private FilterPanel filterPanel;
 
@@ -408,9 +408,9 @@ public class Gui {
 	}
 
 	private void addName() {
-		// If text field not empty then add player to list. #TODO: Check for "enter player name..." as well
+		// If text field not empty then add player to list.
 		// verify with Steam that the entry is a valid Steam ID and throw an error if not
-		if (!addPlayerText.getText().isEmpty()) {
+		if ((!addPlayerText.getText().isEmpty()) && (!addPlayerText.getText().equals("Enter player name..."))) {
 			try {
 				SteamId temp = gamesInCommon.checkSteamId(addPlayerText.getText());
 				// add to the list of SteamIds
@@ -430,7 +430,7 @@ public class Gui {
 		// remove the selected player from the SteamId list
 		playerIdList.remove(playerList.getSelectedIndex());
 		// and also from the JList
-		playerListModel.removeElement(playerList.getSelectedValue());		
+		playerListModel.removeElement(playerList.getSelectedValue());
 	}
 
 	private void scan() {
