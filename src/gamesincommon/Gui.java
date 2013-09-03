@@ -69,9 +69,8 @@ public class Gui {
 			public void run() {
 				try {
 					Gui window = new Gui();
-					window.gamesInCommonFrame.setVisible(true);
-					window.gamesInCommon = new GamesInCommon();
 					window.initialize();
+					window.gamesInCommonFrame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -90,8 +89,10 @@ public class Gui {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+		// create GamesInCommon
+		gamesInCommon = new GamesInCommon();
 		// logger initialisation
-		gamesInCommon.getLogger();
+		logger = gamesInCommon.getLogger();
 		// remove parent handlers
 		Handler[] parentHandlers = logger.getParent().getHandlers();
 		for (Handler handler : parentHandlers) {
