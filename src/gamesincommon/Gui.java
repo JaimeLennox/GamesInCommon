@@ -1,5 +1,6 @@
 package gamesincommon;
 
+import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -24,6 +25,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.SoftBevelBorder;
@@ -144,12 +146,13 @@ public class Gui {
         .addComponent(consoleScrollPane, GroupLayout.PREFERRED_SIZE, 21, Short.MAX_VALUE)
     );
     
-    JTextArea consoleText = new JTextArea("");
+    JTextPane consoleText = new JTextPane();
     consoleScrollPane.setViewportView(consoleText);
     consoleText.setFont(new Font("Tahoma", Font.PLAIN, 18));
     
     MessageConsole messageConsole = new MessageConsole(consoleText);
     messageConsole.redirectOut(null, System.out);
+    messageConsole.redirectErr(Color.red, System.err);
     consolePanel.setLayout(gl_consolePanel);
     
     final FilterPanel filterPanel = new FilterPanel();
