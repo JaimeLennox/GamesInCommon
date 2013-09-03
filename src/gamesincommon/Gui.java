@@ -320,7 +320,7 @@ public class Gui {
    * @param games
    *            Games to show.
    */
-  public void showCommonGames(final Collection<SteamGame> games) {
+  private void showCommonGames(final Collection<SteamGame> games) {
     
     List<String> gameList = new ArrayList<String>();
     

@@ -25,7 +25,7 @@ public class Console {
    * 
    * @return The list of user names.
    */
-  public List<String> getUsers() {
+  private List<String> getUsers() {
 
     List<String> users = new ArrayList<String>();
 
@@ -56,7 +56,7 @@ public class Console {
    * @param games
    *            The collection to print
    */
-  public void displayCommonGames(Collection<SteamGame> games) {
+  private void displayCommonGames(Collection<SteamGame> games) {
     // Lists games in common.
     for (SteamGame i : games) {
       System.out.println(i.getName());
