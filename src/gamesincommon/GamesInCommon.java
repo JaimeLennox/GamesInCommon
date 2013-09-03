@@ -115,7 +115,15 @@ public class GamesInCommon {
 	}
 
 	public SteamId checkSteamId(String nameToCheck) throws SteamCondenserException {
-		return SteamId.create(nameToCheck);
+		try {
+			return SteamId.create(nameToCheck);
+		} catch (SteamCondenserException e1) {
+			try {
+				return SteamId.create(Long.parseLong(nameToCheck));
+			} catch (SteamCondenserException e2) {
+				throw e1;
+			}
+		}
 	}
 
 	/**
