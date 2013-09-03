@@ -7,7 +7,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
 import com.github.koraktor.steamcondenser.steam.community.SteamGame;
+import com.github.koraktor.steamcondenser.steam.community.SteamId;
 
 public class Console {
   
@@ -15,7 +17,7 @@ public class Console {
 
     GamesInCommon gamesInCommon = new GamesInCommon();
     Console console = new Console();
-    List<String> users = console.getUsers();
+    List<SteamId> users = console.getUsers();
     console.displayCommonGames(gamesInCommon.findCommonGames(users));
 
   }
@@ -25,9 +27,9 @@ public class Console {
    * 
    * @return The list of user names.
    */
-  public List<String> getUsers() {
+  public List<SteamId> getUsers() {
 
-    List<String> users = new ArrayList<String>();
+    List<SteamId> users = new ArrayList<SteamId>();
 
     System.out.println("Enter users one by one, typing 'FIN' when complete:");
 
@@ -38,12 +40,12 @@ public class Console {
 
       while (!input.equals("FIN")) {
 
-        users.add(input);
+        users.add(SteamId.create(input));
         input = br.readLine();
 
       }
 
-    } catch (IOException e) {
+    } catch (IOException | SteamCondenserException e) {
       e.printStackTrace();
     }
 

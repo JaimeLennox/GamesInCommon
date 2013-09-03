@@ -94,14 +94,14 @@ public class GamesInCommon {
 	 *            A list of names to find common games for.
 	 * @return A collection of games common to all users
 	 */
-	public Collection<SteamGame> findCommonGames(List<String> users) {
+	public Collection<SteamGame> findCommonGames(List<SteamId> users) {
 
 		List<Collection<SteamGame>> userGames = new ArrayList<Collection<SteamGame>>();
 
-		for (String name : users) {
+		for (SteamId name : users) {
 			try {
-				userGames.add(getGames(SteamId.create(name)));
-				System.out.println("Added user " + name + ".");
+				userGames.add(getGames(name));
+				System.out.println("Added user " + name.getNickname() + " (" + name.getSteamId64() + ").");
 			} catch (SteamCondenserException e) {
 				e.printStackTrace();
 			}
@@ -110,8 +110,12 @@ public class GamesInCommon {
 		System.out.print("Finding common games... ");
 		Collection<SteamGame> commonGames = mergeSets(userGames);
 		System.out.println("found.");
-		
+
 		return commonGames;
+	}
+
+	public SteamId checkSteamId(String nameToCheck) throws SteamCondenserException {
+		return SteamId.create(nameToCheck);
 	}
 
 	/**
@@ -221,10 +225,10 @@ public class GamesInCommon {
 	 */
 	public Collection<SteamGame> mergeSets(List<Collection<SteamGame>> userGames) {
 
-	  if (userGames.size() == 0) {
-	      return null;
-	  }
-	  
+		if (userGames.size() == 0) {
+			return null;
+		}
+
 		Collection<SteamGame> result = userGames.get(0);
 
 		for (int i = 1; i < userGames.size(); i++) {
