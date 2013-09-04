@@ -1,6 +1,6 @@
 package gamesincommon;
 
-import java.awt.Color;
+import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -12,6 +12,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -24,14 +26,17 @@ import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.LayoutStyle.ComponentPlacement;
+import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
@@ -49,10 +54,10 @@ public class Gui {
 	private JFrame gamesInCommonFrame;
 
 	private JList<String> outputList;
-	private JList<String> playerList;
+	private JList<SteamId> playerList;
 
 	private DefaultListModel<String> outputListModel;
-	private DefaultListModel<String> playerListModel;
+	private DefaultListModel<SteamId> playerListModel;
 
 	private ArrayList<SteamId> playerIdList;
 
@@ -351,45 +356,67 @@ public class Gui {
 
 		JScrollPane playerListScrollPane = new JScrollPane();
 		GroupLayout gl_playerPanel = new GroupLayout(playerPanel);
-		gl_playerPanel.setHorizontalGroup(gl_playerPanel.createParallelGroup(Alignment.LEADING).addGroup(
-				gl_playerPanel
-						.createSequentialGroup()
-						.addContainerGap()
-						.addGroup(
-								gl_playerPanel
-										.createParallelGroup(Alignment.LEADING, false)
-										.addComponent(playerButtonPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE,
-												Short.MAX_VALUE)
-										.addComponent(addPlayerText, GroupLayout.DEFAULT_SIZE, 209, Short.MAX_VALUE)).addGap(12)
-						.addComponent(playerListScrollPane, GroupLayout.DEFAULT_SIZE, 173, Short.MAX_VALUE).addContainerGap()));
-		gl_playerPanel.setVerticalGroup(gl_playerPanel.createParallelGroup(Alignment.LEADING).addGroup(
-				gl_playerPanel
-						.createSequentialGroup()
-						.addContainerGap()
-						.addGroup(
-								gl_playerPanel
-										.createParallelGroup(Alignment.LEADING)
-										.addComponent(playerListScrollPane, GroupLayout.DEFAULT_SIZE, 97, Short.MAX_VALUE)
-										.addGroup(
-												gl_playerPanel
-														.createSequentialGroup()
-														.addComponent(addPlayerText, GroupLayout.PREFERRED_SIZE, 49,
-																GroupLayout.PREFERRED_SIZE).addPreferredGap(ComponentPlacement.UNRELATED)
-														.addComponent(playerButtonPanel, GroupLayout.DEFAULT_SIZE, 41, Short.MAX_VALUE)))
-						.addContainerGap()));
+		gl_playerPanel.setHorizontalGroup(
+		  gl_playerPanel.createParallelGroup(Alignment.LEADING)
+		    .addGroup(gl_playerPanel.createSequentialGroup()
+		      .addContainerGap()
+		      .addGroup(gl_playerPanel.createParallelGroup(Alignment.LEADING, false)
+		        .addComponent(playerButtonPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+		        .addComponent(addPlayerText, GroupLayout.DEFAULT_SIZE, 209, Short.MAX_VALUE))
+		      .addPreferredGap(ComponentPlacement.RELATED, 9, Short.MAX_VALUE)
+		      .addComponent(playerListScrollPane, GroupLayout.PREFERRED_SIZE, 176, GroupLayout.PREFERRED_SIZE)
+		      .addContainerGap())
+		);
+		gl_playerPanel.setVerticalGroup(
+		  gl_playerPanel.createParallelGroup(Alignment.LEADING)
+		    .addGroup(gl_playerPanel.createSequentialGroup()
+		      .addContainerGap()
+		      .addGroup(gl_playerPanel.createParallelGroup(Alignment.LEADING)
+		        .addComponent(playerListScrollPane, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)
+		        .addGroup(gl_playerPanel.createSequentialGroup()
+		          .addComponent(addPlayerText, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE)
+		          .addPreferredGap(ComponentPlacement.UNRELATED)
+		          .addComponent(playerButtonPanel, GroupLayout.DEFAULT_SIZE, 35, Short.MAX_VALUE)))
+		      .addContainerGap())
+		);
 
 		// initialise data model for playerList, which tells the JList about the data it expects
-		playerListModel = new DefaultListModel<String>();
+		playerListModel = new DefaultListModel<SteamId>();
 		// initialise ArrayList for player list
 		playerIdList = new ArrayList<SteamId>(10);
 		// initialise JList for player list display
-		playerList = new JList<String>(playerListModel);
+		playerList = new JList<SteamId>(playerListModel);
+		playerList.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		playerList.setCellRenderer(new PlayerListRenderer());
 		playerList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 		playerList.setLayoutOrientation(JList.VERTICAL);
 		playerList.setVisibleRowCount(-1);
 		playerListScrollPane.setViewportView(playerList);
 		playerPanel.setLayout(gl_playerPanel);
 		gamesInCommonFrame.getContentPane().setLayout(groupLayout);
+	}
+	
+	class PlayerListRenderer extends JLabel implements ListCellRenderer<SteamId> {
+	  
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public Component getListCellRendererComponent(
+        JList<? extends SteamId> list, SteamId value, int index,
+        boolean isSelected, boolean cellHasFocus) {
+      setText(value.getNickname());
+      try {
+        URL url = new URL(value.getAvatarIconUrl());
+        ImageIcon icon = new ImageIcon(url); 
+        setIcon(icon);
+      } catch (MalformedURLException e) {
+        e.printStackTrace();
+      }
+      
+      return this;
+    }
+
+
 	}
 
 	/**
@@ -458,7 +485,7 @@ public class Gui {
 				// add to the list of SteamIds
 				playerIdList.add(temp);
 				// then add to the JList
-				playerListModel.addElement(temp.getNickname());
+				playerListModel.addElement(temp);
 			} catch (SteamCondenserException e) {
 				logger.log(Level.SEVERE, "\"" + name + "\": " + e.getMessage());
 			}
