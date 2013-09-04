@@ -162,10 +162,10 @@ public class GamesInCommon {
 
 		Collection<SteamGame> result = new HashSet<SteamGame>();
 		// get list of tables
-		ResultSet tableSet = null;
 		Statement s = null;
 
 		for (SteamGame game : gameList) {
+			ResultSet tableSet = null;
 			// first run a query through the local db
 			try {
 				s = connection.createStatement();
@@ -180,18 +180,17 @@ public class GamesInCommon {
 			try {
 				// query the table that matches the filter
 				while (tableSet.next()) {
-					ResultSet rSet = null;
-					for (FilterType filter : filterList) {
-						// default to "needs checking"
-						filtersToCheck.put(filter, true);
-						// if the game is not already in the result Collection
-						if (!result.contains(game)) {
+					ResultSet rSet = null;;
+					// if the game is not already in the result Collection
+					if (!result.contains(game)) {
+						for (FilterType filter : filterList) {
 							if (filter.getValue().equals((tableSet.getString("name")))) {
+								s = connection.createStatement();
 								rSet = s.executeQuery("SELECT * FROM [" + tableSet.getString("name") + "] WHERE AppID = '"
 										+ game.getAppId() + "'");
 							}
 							// if rSet.next() indicates a match
-							while ((rSet != null) && (rSet.next())) {
+							if ((rSet != null) && (rSet.next())) {
 								// if the game passes the filter and is not already in the result collection, add it
 								if (rSet.getBoolean("HasProperty")) {
 									result.add(game);
@@ -201,6 +200,9 @@ public class GamesInCommon {
 								needsWebCheck = false;
 								logger.log(Level.INFO, "[SQL] Checked game '" + game.getName() + "'");
 								rSet.close();
+							} else {
+								// "needs checking"
+								filtersToCheck.put(filter, true);								
 							}
 						}
 					}
@@ -208,8 +210,11 @@ public class GamesInCommon {
 						rSet.close();
 					}
 				}
+				if (tableSet != null) {
+					tableSet.close();
+				}
 			} catch (SQLException e2) {
-				logger.log(Level.SEVERE, e2.getMessage());
+				logger.log(Level.SEVERE, e2.getMessage(), e2);
 			}
 			// if any games need checking, we'll need to send requests to the steampowered.com website for data
 			if (needsWebCheck) {
