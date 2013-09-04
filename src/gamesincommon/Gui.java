@@ -475,8 +475,7 @@ public class Gui {
         boolean isSelected, boolean cellHasFocus) {
       setText(value.getNickname());
       try {
-        URL url = new URL(value.getAvatarIconUrl());
-        ImageIcon icon = new ImageIcon(url); 
+        ImageIcon icon = new ImageIcon(new URL(value.getAvatarIconUrl())); 
         setIcon(icon);
       } catch (MalformedURLException e) {
         e.printStackTrace();
