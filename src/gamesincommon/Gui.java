@@ -27,20 +27,19 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.LayoutStyle.ComponentPlacement;
-import javax.swing.ListCellRenderer;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
@@ -465,22 +464,28 @@ public class Gui {
 		gamesInCommonFrame.getContentPane().setLayout(groupLayout);
 	}
 	
-	class PlayerListRenderer extends JLabel implements ListCellRenderer<SteamId> {
+	class PlayerListRenderer extends DefaultListCellRenderer {
 	  
     private static final long serialVersionUID = 1L;
 
     @Override
     public Component getListCellRendererComponent(
-        JList<? extends SteamId> list, SteamId value, int index,
+        JList<?> list, Object value, int index,
         boolean isSelected, boolean cellHasFocus) {
-      setText(value.getNickname());
-      try {
-        ImageIcon icon = new ImageIcon(new URL(value.getAvatarIconUrl())); 
-        setIcon(icon);
-      } catch (MalformedURLException e) {
-        e.printStackTrace();
-      }
       
+      super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+      
+      if (value instanceof SteamId) {
+        SteamId id = (SteamId) value;
+        setText(id.getNickname());
+        try {
+          ImageIcon icon = new ImageIcon(new URL(id.getAvatarIconUrl())); 
+          setIcon(icon);
+        } catch (MalformedURLException e) {
+          e.printStackTrace();
+        }
+      }
+       
       return this;
     }
 
