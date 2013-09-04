@@ -1,6 +1,5 @@
 package gamesincommon;
 
-import java.awt.Color;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -444,10 +443,18 @@ public class Gui {
 
 	}
 
+	/**
+	 * Get a list of SteamIds parallel to the playerIDList
+	 * 
+	 * @return A list of SteamIds in the same order as playerList
+	 */
 	private List<SteamId> getPlayerIDs() {
 		return playerIdList;
 	}
 
+	/**
+	 * Verifies and retrieves information on the user indicated by addPlayerText, then adds them to playerList.
+	 */
 	private void addName() {
 		// If text field not empty then add player to list.
 		// verify with Steam that the entry is a valid Steam ID and throw an error if not
@@ -468,6 +475,9 @@ public class Gui {
 		}
 	}
 
+	/**
+	 * Removes the currently selected player from playerList. Has no effect if nothing selected.
+	 */
 	private void removeName() {
 		if (playerList.getSelectedIndex() > -1) {
 			// remove the selected player from the SteamId list
@@ -477,6 +487,9 @@ public class Gui {
 		}
 	}
 
+	/**
+	 * Finds common games within the users of playerList, then applies any selected filters and displays the result
+	 */
 	private void scan() {
 		logger.log(Level.INFO, "Starting scan.");
 
