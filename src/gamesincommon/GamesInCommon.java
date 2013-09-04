@@ -180,7 +180,8 @@ public class GamesInCommon {
 			try {
 				// query the table that matches the filter
 				while (tableSet.next()) {
-					ResultSet rSet = null;;
+					ResultSet rSet = null;
+					;
 					// if the game is not already in the result Collection
 					if (!result.contains(game)) {
 						for (FilterType filter : filterList) {
@@ -202,7 +203,7 @@ public class GamesInCommon {
 								rSet.close();
 							} else {
 								// "needs checking"
-								filtersToCheck.put(filter, true);								
+								filtersToCheck.put(filter, true);
 							}
 						}
 					}
@@ -236,14 +237,25 @@ public class GamesInCommon {
 						}
 					}
 					// if we have any filters that needed data, match them up with foundProperties and insert them into the database
+					// IF filterToCheck -> true INSERT INTO DB foundProperties.value();
 					for (Map.Entry<FilterType, Boolean> filterToCheck : filtersToCheck.entrySet()) {
 						if (filterToCheck.getValue().equals(new Boolean(true))) {
 							for (Map.Entry<FilterType, Boolean> entry : foundProperties.entrySet()) {
-								// SQL takes booleans as 1 or 0 intead of TRUE or FALSE
-								int boolVal = (entry.getValue().equals(new Boolean(true))) ? 1 : 0;
-								connection.createStatement().executeUpdate(
-										"INSERT INTO [" + entry.getKey().toString() + "] (AppID, Name, HasProperty) VALUES ('"
-												+ game.getAppId() + "','" + sanitiseInputString(game.getName()) + "', " + boolVal + ")");
+								// END OF ALL WHACK-A-MOLE GAMES
+								s = connection.createStatement();
+								ResultSet checkSet = s.executeQuery("SELECT * FROM [" + entry.getKey().toString() + "] WHERE AppID='"
+										+ game.getAppId() + "';");
+								if (checkSet.next()) {
+									// if checkSet returns a value, skip
+								} else {
+									// SQL takes booleans as 1 or 0 intead of TRUE or FALSE
+									int boolVal = (entry.getValue().equals(new Boolean(true))) ? 1 : 0;
+									connection.createStatement()
+											.executeUpdate(
+													"INSERT INTO [" + entry.getKey().toString() + "] (AppID, Name, HasProperty) VALUES ('"
+															+ game.getAppId() + "','" + sanitiseInputString(game.getName()) + "', "
+															+ boolVal + ")");
+								}
 							}
 						}
 					}
