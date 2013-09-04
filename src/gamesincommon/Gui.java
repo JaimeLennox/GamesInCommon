@@ -52,7 +52,7 @@ import com.github.koraktor.steamcondenser.steam.community.SteamId;
 
 public class Gui {
 
-	final static Font font = new Font("Tahoma", Font.PLAIN, 18);
+	static final Font font = new Font("Tahoma", Font.PLAIN, 18);
 
 	private JFrame gamesInCommonFrame;
 
@@ -68,6 +68,8 @@ public class Gui {
 	private FilterPanel filterPanel;
 
 	private GamesInCommon gamesInCommon;
+	
+	private Thread scanThread;
 
 	private Logger logger;
 
@@ -136,7 +138,7 @@ public class Gui {
 		JPanel consolePanel = new JPanel();
 		consolePanel.setBorder(new SoftBevelBorder(BevelBorder.LOWERED, null, null, null, null));
 
-		JPanel scanPanel = new JPanel();
+		final JPanel scanPanel = new JPanel();
 		scanPanel.setBorder(new TitledBorder(null, "", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 
 		JPanel outputPanel = new JPanel();
@@ -263,23 +265,56 @@ public class Gui {
 		JPanel playerButtonPanel = new JPanel();
 		playerButtonPanel.setLayout(new GridLayout(1, 2, 0, 0));
 
-		JButton scanButton = new JButton("Scan");
+		final JButton scanButton = new JButton("Scan");
 		scanButton.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		
+		final JButton cancelButton = new JButton("Cancel");
+    cancelButton.setFont(font);
 
 		scanButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Thread scanThread = new Thread() {
-					public void run() {
-						scan();
-					}
-				};
+			  
+			  SwingUtilities.invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            scanPanel.remove(scanButton);
+            scanPanel.add(cancelButton);
+            scanPanel.validate();
+          }
+			  });
+			  
+        scanThread = new Thread() {
+          public void run() {
+            scan();
+            cancelButton.doClick();
+          }
+        };
 				scanThread.start();
+				
 			}
 		});
 		scanPanel.setLayout(new GridLayout(0, 1, 0, 0));
 
 		scanPanel.add(scanButton);
+		
+		cancelButton.addActionListener(new ActionListener() {
+      @SuppressWarnings("deprecation")
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        scanThread.stop();
+        
+        SwingUtilities.invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            scanPanel.remove(cancelButton);
+            scanPanel.add(scanButton);
+            scanPanel.validate();
+          }
+        });
+        
+      }
+		}); 
 
 		JButton addButton = new JButton("Add");
 		addButton.setFont(new Font("Tahoma", Font.PLAIN, 18));
