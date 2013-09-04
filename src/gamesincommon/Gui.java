@@ -1,6 +1,6 @@
 package gamesincommon;
 
-import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GridLayout;
@@ -12,6 +12,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -48,10 +51,10 @@ public class Gui {
 
 	private JFrame gamesInCommonFrame;
 
-	private JList<String> outputList;
+	private JList<SteamGameWrapper> outputList;
 	private JList<String> playerList;
 
-	private DefaultListModel<String> outputListModel;
+	private DefaultListModel<SteamGameWrapper> outputListModel;
 	private DefaultListModel<String> playerListModel;
 
 	private ArrayList<SteamId> playerIdList;
@@ -191,11 +194,42 @@ public class Gui {
 		JScrollPane outputScrollPane = new JScrollPane();
 		outputPanel.add(outputScrollPane);
 
-		outputListModel = new DefaultListModel<String>();
-		outputList = new JList<String>(outputListModel);
+		outputListModel = new DefaultListModel<SteamGameWrapper>();
+		outputList = new JList<SteamGameWrapper>(outputListModel);
 		outputList.setFont(new Font("Tahoma", Font.PLAIN, 18));
 		outputScrollPane.setViewportView(outputList);
-		scanPanel.setLayout(new GridLayout(0, 1, 0, 0));
+
+		// launches the selected steam game on double click
+		outputList.addMouseListener(new MouseListener() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (e.getClickCount() == 2) {
+					SteamGame launchGame = outputList.getSelectedValue().getGame();
+					logger.log(Level.INFO, "Launching " + launchGame.getName() + " (" + launchGame.getAppId() + ")");
+					try {
+						Desktop.getDesktop().browse(new URI("steam://run/" + launchGame.getAppId()));
+					} catch (IOException | URISyntaxException e1) {
+						logger.log(Level.SEVERE, e1.getMessage());
+					}
+				}
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+			}
+		});
 
 		JScrollPane consoleScrollPane = new JScrollPane();
 
@@ -406,7 +440,7 @@ public class Gui {
 	}
 
 	/**
-	 * Displays all games from a collection in a new graphical interface frame.
+	 * Displays all games from a collection in a JList format.
 	 * 
 	 * @param games
 	 *            Games to show.
@@ -415,10 +449,10 @@ public class Gui {
 
 		if (games == null)
 			return;
-		List<String> gameList = new ArrayList<String>();
+		List<SteamGameWrapper> gameList = new ArrayList<SteamGameWrapper>();
 
 		for (SteamGame steamGame : games) {
-			gameList.add(steamGame.getName() + "\n");
+			gameList.add(new SteamGameWrapper(steamGame));
 		}
 
 		Collections.sort(gameList);
@@ -426,7 +460,7 @@ public class Gui {
 		// Final count.
 		logger.log(Level.INFO, "Total games in common: " + games.size());
 
-		for (final String str : gameList) {
+		for (final SteamGameWrapper str : gameList) {
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
