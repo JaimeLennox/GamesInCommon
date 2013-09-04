@@ -164,15 +164,15 @@ public class GamesInCommon {
 		// get list of tables
 		ResultSet tableSet = null;
 		Statement s = null;
-		try {
-			s = connection.createStatement();
-			tableSet = s.executeQuery("SELECT name FROM sqlite_master WHERE type='table';");
-		} catch (SQLException e1) {
-			logger.log(Level.SEVERE, e1.getMessage(), e1);
-		}
 
 		for (SteamGame game : gameList) {
 			// first run a query through the local db
+			try {
+				s = connection.createStatement();
+				tableSet = s.executeQuery("SELECT name FROM sqlite_master WHERE type='table';");
+			} catch (SQLException e1) {
+				logger.log(Level.SEVERE, e1.getMessage(), e1);
+			}
 			// filtersToCheck tells the following webcheck loop which filters need checking and insertion into the DB
 			Map<FilterType, Boolean> filtersToCheck = new HashMap<FilterType, Boolean>();
 			// default to "needs checking"
@@ -186,8 +186,6 @@ public class GamesInCommon {
 						filtersToCheck.put(filter, true);
 						// if the game is not already in the result Collection
 						if (!result.contains(game)) {
-							// WARNING - This does NOT trigger web update if one or more filters are TRUE even if some filters have no DB
-							// data
 							if (filter.getValue().equals((tableSet.getString("name")))) {
 								rSet = s.executeQuery("SELECT * FROM [" + tableSet.getString("name") + "] WHERE AppID = '"
 										+ game.getAppId() + "'");
@@ -206,7 +204,9 @@ public class GamesInCommon {
 							}
 						}
 					}
-					rSet.close();
+					if (rSet != null) {
+						rSet.close();
+					}
 				}
 			} catch (SQLException e2) {
 				logger.log(Level.SEVERE, e2.getMessage());
@@ -227,11 +227,6 @@ public class GamesInCommon {
 								result.add(game);
 								// success - add to foundProperties as TRUE
 								foundProperties.put(filter, true);
-								// success - add to db
-								// connection.createStatement().executeUpdate(
-								// "INSERT INTO [" + filter.getValue() + "] (AppID, Name, HasProperty) VALUES ('"
-								// + game.getAppId() + "','" + sanitiseInputString(game.getName()) + "', 1)");
-								// foundProperties.put(filter, true);
 							}
 						}
 					}
