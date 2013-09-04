@@ -422,6 +422,39 @@ public class Gui {
 		playerList.setLayoutOrientation(JList.VERTICAL);
 		playerList.setVisibleRowCount(-1);
 		playerListScrollPane.setViewportView(playerList);
+
+		// messages the selected user on double click
+		playerList.addMouseListener(new MouseListener() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (e.getClickCount() == 2) {
+					SteamId playerId = playerIdList.get(playerList.getSelectedIndex());
+					//logger.log(Level.INFO, "Messaging " + playerId.getNickname() + " (" + playerId.getSteamId64() + ")");
+					try {
+						Desktop.getDesktop().browse(new URI("steam://friends/message/" + playerId.getSteamId64()));
+					} catch (IOException | URISyntaxException e1) {
+						logger.log(Level.SEVERE, e1.getMessage());
+					}
+				}
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+			}
+
+			@Override
+			public void mousePressed(MouseEvent e) {
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e) {
+			}
+		});
+
 		playerPanel.setLayout(gl_playerPanel);
 		gamesInCommonFrame.getContentPane().setLayout(groupLayout);
 	}
