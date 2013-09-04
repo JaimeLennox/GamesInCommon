@@ -1,14 +1,12 @@
 package gamesincommon;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 
 import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
-import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.Document;
@@ -59,6 +57,10 @@ public class TextPaneHandler extends Handler {
 		});
 	}
 
+	/**
+	 * Access the internal JTextPane
+	 * @return The textpane used to show logger records
+	 */
 	public JTextPane getTextPane() {
 		return this.textPane;
 	}
