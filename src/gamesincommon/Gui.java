@@ -407,11 +407,11 @@ public class Gui {
 		    .addGroup(gl_playerPanel.createSequentialGroup()
 		      .addContainerGap()
 		      .addGroup(gl_playerPanel.createParallelGroup(Alignment.LEADING)
-		        .addComponent(playerListScrollPane, GroupLayout.PREFERRED_SIZE, 100, GroupLayout.PREFERRED_SIZE)
+		        .addComponent(playerListScrollPane, GroupLayout.PREFERRED_SIZE, 106, GroupLayout.PREFERRED_SIZE)
 		        .addGroup(gl_playerPanel.createSequentialGroup()
 		          .addComponent(addPlayerText, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE)
 		          .addPreferredGap(ComponentPlacement.UNRELATED)
-		          .addComponent(playerButtonPanel, GroupLayout.DEFAULT_SIZE, 35, Short.MAX_VALUE)))
+		          .addComponent(playerButtonPanel, GroupLayout.DEFAULT_SIZE, 38, Short.MAX_VALUE)))
 		      .addContainerGap())
 		);
 
