@@ -6,9 +6,11 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -94,58 +96,51 @@ public class GamesInCommon {
 	public Collection<SteamGame> filterGames(Collection<SteamGame> gameList, final List<FilterType> filterList) {
 
 		final Collection<SteamGame> result = new HashSet<SteamGame>();
-		// get list of tables
 		
-		List<Thread> threadList = new ArrayList<Thread>();
+		final CountDownLatch latch = new CountDownLatch(gameList.size());
+		ExecutorService taskExecutor = Executors.newCachedThreadPool();
 
 		for (final SteamGame game : gameList) {
 
-		  Thread thread = new Thread(new Runnable() {
+		  taskExecutor.execute(new Runnable() {
         @Override
         public void run() {
           result.addAll(filterGame(game));
+          latch.countDown();
         }
 
         private Collection<? extends SteamGame> filterGame(SteamGame game) {
           Collection<SteamGame> result = new HashSet<SteamGame>();
           
-          // If any games need checking, we'll need to send requests to the steampowered.com website for data.
-          HashMap<FilterType, Boolean> foundProperties = new HashMap<FilterType, Boolean>();
+            // Need to send requests to the steampowered.com website for data.
             try (BufferedReader br = new BufferedReader(new InputStreamReader(new URL(
                 "http://store.steampowered.com/api/appdetails/?appids=" + game.getAppId()).openStream()));) {
+              
               // Read lines in until there are no more to be read, run filter on each line looking for specified package IDs.
               String line;
               while (((line = br.readLine()) != null) && (!result.contains(game))) {
                 for (FilterType filter : filterList) {
-                  // default false until set to true
-                  foundProperties.put(filter, false);
                   if (line.contains("\"" + filter.getValue() + "\"")) {
                     result.add(game);
-                    // success - add to foundProperties as TRUE
-                    foundProperties.put(filter, true);
                   }
                 }
               }
 
               logger.log(Level.INFO, "Checked game '" + game.getName() + "'");
 
-            } catch (IOException e3) {
-              logger.log(Level.SEVERE, e3.getMessage(), e3);
+            } catch (IOException e) {
+              logger.log(Level.SEVERE, e.getMessage(), e);
             }
           return result;
         }
 		  });
-		  thread.start();
-		  threadList.add(thread);
 		}
 		
-		for (Thread thread : threadList) {
-		  try {
-        thread.join();
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-		}
+		try {
+      latch.await();
+    } catch (InterruptedException e) {
+      logger.log(Level.SEVERE, e.getMessage(), e);
+    }
 		
 		return result;
 	}
