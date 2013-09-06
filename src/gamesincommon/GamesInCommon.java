@@ -230,11 +230,14 @@ public class GamesInCommon {
                       }
                       // if data was found, no need to pull data from the web for this filter
                       filtersToCheck.put(filter, false);
-                      logger.log(Level.INFO, "[SQL] Checked game '" + game.getName() + "'");
                       rSet.close();
                     } else {
                       // "needs checking"
                       filtersToCheck.put(filter, true);
+                      if (debug) {
+                        logger.log(Level.FINEST, "[SQL] Queued game '" + game.getName() + "' for web check on filter "
+                            + filter.toString());
+                      }
                     }
                   }
                 }
@@ -258,15 +261,18 @@ public class GamesInCommon {
             }
           }
 
-          // if any games need checking, we'll need to send requests to the steampowered.com website for data
-          if (needsWebCheck) {
+          // if all data on this game was in the database, no webcheck needed.
+          if (!needsWebCheck) {
+            logger.log(Level.INFO, "[SQL] Checked game '" + game.getName() + "'");
+          // otherwise, if any data is missing, we'll need request it from the steampowered.com website
+          }else {
             // foundProperties records whether it has or does not have each of the filters
             HashMap<FilterType, Boolean> foundProperties = new HashMap<FilterType, Boolean>();
             try (BufferedReader br = new BufferedReader(new InputStreamReader(new URL(
                 "http://store.steampowered.com/api/appdetails/?appids=" + game.getAppId()).openStream()));) {
               // Read lines in until there are no more to be read, run filter on each line looking for specified package IDs.
               String line;
-              while (((line = br.readLine()) != null) && (!result.contains(game))) {
+              while ((line = br.readLine()) != null) {
                 for (FilterType filter : filterList) {
                   // default false until set to true
                   foundProperties.put(filter, false);
@@ -274,24 +280,34 @@ public class GamesInCommon {
                     result.add(game);
                     // success - add to foundProperties as TRUE
                     foundProperties.put(filter, true);
-                    if (debug) {
-                      logger.log(Level.FINEST, "[WEB] Game " + game.getName() + " has property \"" + filter.toString()
-                          + "\".");
-                    }
                   }
+                }
+              }
+              if (debug) {
+                for (FilterType filter : filterList) {
+                  logger.log(Level.FINEST, "[WEB] Game " + game.getName() + ": \"" + filter.toString() + "\" = "
+                      + foundProperties.get(filter) + ".");
                 }
               }
               // if we have any filters that needed data, match them up with foundProperties and insert them into the database
               // IF filterToCheck -> true INSERT INTO DB foundProperties.value();
               for (Map.Entry<FilterType, Boolean> filterToCheck : filtersToCheck.entrySet()) {
                 if (filterToCheck.getValue().equals(new Boolean(true))) {
+                  if (debug) {
+                    logger.log(Level.FINEST, "[WEB] Checking game '" + game.getName() + "' for property "
+                        + filterToCheck.getKey());
+                  }
                   for (Map.Entry<FilterType, Boolean> entry : foundProperties.entrySet()) {
                     String filterName = entry.getKey().toString();
-                    // END OF ALL WHACK-A-MOLE GAMES
+                    // END OF ALL SQL WHACK-A-MOLE GAMES
                     ResultSet checkSet = connection.createStatement().executeQuery(
-                        "SELECT * FROM [" + entry.getKey().toString() + "] WHERE AppID = '" + game.getAppId() + "';");
+                        "SELECT 1 FROM [" + entry.getKey().toString() + "] WHERE AppID = '" + game.getAppId() + "';");
                     if (checkSet.next()) {
                       // if checkSet returns a value, skip
+                      if (debug) {
+                        logger.log(Level.FINEST, "[SQL] Data for game '" + game.getName()
+                            + "' already exists for property '" + filterName + "'.");
+                      }
                     } else {
                       String filterInsertSQL = "INSERT INTO [" + filterName + "] (AppID, Name, HasProperty) VALUES (?,?,?)";
                       filterInsertStatement = connection.prepareStatement(filterInsertSQL);
@@ -303,8 +319,14 @@ public class GamesInCommon {
                       int rows = filterInsertStatement.executeUpdate();
                       if (debug) {
                         if (rows > 0) {
-                          logger.log(Level.FINEST, "[SQL] Value " + entry.getValue().toString().toUpperCase()
-                              + " inserted for game " + game.getName() + ", property \"" + filterName + "\".");
+                          logger.log(Level.FINEST,
+                              "[SQL] Value " + entry.getValue() + " inserted for game '" + game.getName()
+                                  + "', property '" + filterName + "'.");
+                        } else {
+                          if (debug) {
+                            logger.log(Level.FINEST, "[SQL] Failed to add '" + game.getName() + "':" + entry.getValue()
+                                + " to '" + filterName + "'.");
+                          }
                         }
                       }
                     }
@@ -317,7 +339,7 @@ public class GamesInCommon {
             }
           }
         }
-		  });
+      });
 		}
 		
 		try {
