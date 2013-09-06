@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -29,6 +30,8 @@ public class GamesInCommon {
 
 	private Logger logger;
 
+	private boolean debug;
+
 	public GamesInCommon() {
 		// initialise logger
 		logger = Logger.getLogger(GamesInCommon.class.getName());
@@ -38,6 +41,8 @@ public class GamesInCommon {
 		if (connection == null) {
 			throw new RuntimeException("Connection could not be establised to local database.");
 		}
+		// default debug value false
+		debug = true;
 	}
 
 	public Logger getLogger() {
@@ -161,15 +166,23 @@ public class GamesInCommon {
 	public Collection<SteamGame> filterGames(Collection<SteamGame> gameList, List<FilterType> filterList) {
 
 		Collection<SteamGame> result = new HashSet<SteamGame>();
-		// get list of tables
-		ResultSet tableSet = null;
-		Statement s = null;
-
+		// prepared SQL statements reduce redundant processing
+		PreparedStatement tableSelectStatement = null;
+		PreparedStatement filterSelectStatement = null;
+		PreparedStatement filterInsertStatement = null;
+		// prepare the table select statement
+		try {
+			String tableSelectSQL = "SELECT name FROM sqlite_master WHERE type = 'table';";
+			tableSelectStatement = connection.prepareStatement(tableSelectSQL);
+		} catch (SQLException e0) {
+			logger.log(Level.SEVERE, e0.getMessage());
+		}
+		// start going through the games
 		for (SteamGame game : gameList) {
-			// first run a query through the local db
+			ResultSet tableSet = null;
+			// first run a query through the local db, this returns all available filter types
 			try {
-				s = connection.createStatement();
-				tableSet = s.executeQuery("SELECT name FROM sqlite_master WHERE type='table';");
+				tableSet = tableSelectStatement.executeQuery();
 			} catch (SQLException e1) {
 				logger.log(Level.SEVERE, e1.getMessage(), e1);
 			}
@@ -178,29 +191,38 @@ public class GamesInCommon {
 			// default to "needs checking"
 			boolean needsWebCheck = true;
 			try {
-				// query the table that matches the filter
+				// go through each available table and check the filter that the table represents
 				while (tableSet.next()) {
+					// prepare the the first filter statement - table names cannot be wildcarded using a PreparedStatement
+					String filterSelectSQL = "SELECT * FROM [" + tableSet.getString("name") + "] WHERE AppID = ?";
+					filterSelectStatement = connection.prepareStatement(filterSelectSQL);
+
 					ResultSet rSet = null;
-					for (FilterType filter : filterList) {
-						// default to "needs checking"
-						filtersToCheck.put(filter, true);
-						// if the game is not already in the result Collection
-						if (!result.contains(game)) {
+					// if the game is not already in the result Collection
+					if (!result.contains(game)) {
+						for (FilterType filter : filterList) {
 							if (filter.getValue().equals((tableSet.getString("name")))) {
-								rSet = s.executeQuery("SELECT * FROM [" + tableSet.getString("name") + "] WHERE AppID = '"
-										+ game.getAppId() + "'");
-							}
-							// if rSet.next() indicates a match
-							while ((rSet != null) && (rSet.next())) {
-								// if the game passes the filter and is not already in the result collection, add it
-								if (rSet.getBoolean("HasProperty")) {
-									result.add(game);
+								// prepare and execute the query
+								filterSelectStatement.setInt(1, game.getAppId());
+								rSet = filterSelectStatement.executeQuery();
+
+								// if rSet.next() indicates a match
+								if (rSet.next()) {
+									// if the game passes the filter and is not already in the result collection, add it
+									if (rSet.getBoolean("HasProperty")) {
+										result.add(game);
+										// if the database returns TRUE, no need to check elsewhere
+										needsWebCheck = false;
+									} 
+									// however, if the database returned FALSE the other filter might return true
+									// either way, though, we don't need to check for THIS filter on the web
+									filtersToCheck.put(filter, false);	
+									logger.log(Level.INFO, "[SQL] Checked game '" + game.getName() + "'");
+									rSet.close();
+								} else {
+									// "needs checking"
+									filtersToCheck.put(filter, true);
 								}
-								// if there's an entry in the database, no need to check anywhere else
-								filtersToCheck.put(filter, false);
-								needsWebCheck = false;
-								logger.log(Level.INFO, "[SQL] Checked game '" + game.getName() + "'");
-								rSet.close();
 							}
 						}
 					}
@@ -208,8 +230,11 @@ public class GamesInCommon {
 						rSet.close();
 					}
 				}
+				if (tableSet != null) {
+					tableSet.close();
+				}
 			} catch (SQLException e2) {
-				logger.log(Level.SEVERE, e2.getMessage());
+				logger.log(Level.SEVERE, e2.getMessage(), e2);
 			}
 			// if any games need checking, we'll need to send requests to the steampowered.com website for data
 			if (needsWebCheck) {
@@ -227,23 +252,43 @@ public class GamesInCommon {
 								result.add(game);
 								// success - add to foundProperties as TRUE
 								foundProperties.put(filter, true);
+								if (debug) {
+									logger.log(Level.FINEST, "[WEB] Game " + game.getName() + " has property \"" + filter.toString() + "\".");
+								}
 							}
 						}
 					}
 					// if we have any filters that needed data, match them up with foundProperties and insert them into the database
+					// IF filterToCheck -> true INSERT INTO DB foundProperties.value();
 					for (Map.Entry<FilterType, Boolean> filterToCheck : filtersToCheck.entrySet()) {
 						if (filterToCheck.getValue().equals(new Boolean(true))) {
 							for (Map.Entry<FilterType, Boolean> entry : foundProperties.entrySet()) {
-								// SQL takes booleans as 1 or 0 intead of TRUE or FALSE
-								int boolVal = (entry.getValue().equals(new Boolean(true))) ? 1 : 0;
-								connection.createStatement().executeUpdate(
-										"INSERT INTO [" + entry.getKey().toString() + "] (AppID, Name, HasProperty) VALUES ('"
-												+ game.getAppId() + "','" + sanitiseInputString(game.getName()) + "', " + boolVal + ")");
+								String filterName = entry.getKey().toString();
+								// END OF ALL WHACK-A-MOLE GAMES
+								ResultSet checkSet = connection.createStatement().executeQuery(
+										"SELECT * FROM [" + entry.getKey().toString() + "] WHERE AppID = '" + game.getAppId() + "';");
+								if (checkSet.next()) {
+									// if checkSet returns a value, skip
+								} else {
+									String filterInsertSQL = "INSERT INTO [" + filterName + "] (AppID, Name, HasProperty) VALUES (?,?,?)";
+									filterInsertStatement = connection.prepareStatement(filterInsertSQL);
+									filterInsertStatement.setInt(1, game.getAppId());
+									// no need to sanitise input for this any more, PreparedStatement takes care of it
+									filterInsertStatement.setString(2, game.getName());
+									// SQL takes booleans as 1 or 0 intead of TRUE or FALSE
+									filterInsertStatement.setBoolean(3, entry.getValue());
+									int rows = filterInsertStatement.executeUpdate();
+									if (debug) {
+										if (rows > 0) {
+											logger.log(Level.FINEST, "[SQL] Value " + entry.getValue().toString().toUpperCase()
+													+ " inserted for game " + game.getName() + ", property \"" + filterName + "\".");
+										}
+									}
+								}
 							}
 						}
 					}
 					logger.log(Level.INFO, "[WEB] Checked game '" + game.getName() + "'");
-
 				} catch (IOException | SQLException e3) {
 					logger.log(Level.SEVERE, e3.getMessage(), e3);
 				}
@@ -285,10 +330,6 @@ public class GamesInCommon {
 
 		return result;
 
-	}
-
-	public String sanitiseInputString(String input) {
-		return input.replace("'", "''");
 	}
 
 }
