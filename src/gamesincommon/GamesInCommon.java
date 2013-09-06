@@ -206,8 +206,6 @@ public class GamesInCommon {
           }
           // filtersToCheck tells the following webcheck loop which filters need checking and insertion into the DB
           Map<FilterType, Boolean> filtersToCheck = new HashMap<FilterType, Boolean>();
-          // default to "needs checking"
-          boolean needsWebCheck = true;
           try {
             // go through each available table and check the filter that the table represents
             while (tableSet.next()) {
@@ -229,12 +227,9 @@ public class GamesInCommon {
                       // if the game passes the filter and is not already in the result collection, add it
                       if (rSet.getBoolean("HasProperty")) {
                         result.add(game);
-                        // if the database returns TRUE, no need to check elsewhere
-                        needsWebCheck = false;
-                      } 
-                      // however, if the database returned FALSE the other filter might return true
-                      // either way, though, we don't need to check for THIS filter on the web
-                      filtersToCheck.put(filter, false);  
+                      }
+                      // if data was found, no need to pull data from the web for this filter
+                      filtersToCheck.put(filter, false);
                       logger.log(Level.INFO, "[SQL] Checked game '" + game.getName() + "'");
                       rSet.close();
                     } else {
@@ -254,6 +249,15 @@ public class GamesInCommon {
           } catch (SQLException e2) {
             logger.log(Level.SEVERE, e2.getMessage(), e2);
           }
+
+          // determine if a web request is needed for this game
+          boolean needsWebCheck = false;
+          for (Map.Entry<FilterType, Boolean> filterToCheck : filtersToCheck.entrySet()) {
+            if (filterToCheck.getValue().equals(new Boolean(true))) {
+              needsWebCheck = true;
+            }
+          }
+
           // if any games need checking, we'll need to send requests to the steampowered.com website for data
           if (needsWebCheck) {
             // foundProperties records whether it has or does not have each of the filters
@@ -271,7 +275,8 @@ public class GamesInCommon {
                     // success - add to foundProperties as TRUE
                     foundProperties.put(filter, true);
                     if (debug) {
-                      logger.log(Level.FINEST, "[WEB] Game " + game.getName() + " has property \"" + filter.toString() + "\".");
+                      logger.log(Level.FINEST, "[WEB] Game " + game.getName() + " has property \"" + filter.toString()
+                          + "\".");
                     }
                   }
                 }
