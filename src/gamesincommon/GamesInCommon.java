@@ -211,10 +211,12 @@ public class GamesInCommon {
 									// if the game passes the filter and is not already in the result collection, add it
 									if (rSet.getBoolean("HasProperty")) {
 										result.add(game);
-									}
-									// if there's an entry in the database, no need to check anywhere else
-									filtersToCheck.put(filter, false);
-									needsWebCheck = false;
+										// if the database returns TRUE, no need to check elsewhere
+										needsWebCheck = false;
+									} 
+									// however, if the database returned FALSE the other filter might return true
+									// either way, though, we don't need to check for THIS filter on the web
+									filtersToCheck.put(filter, false);	
 									logger.log(Level.INFO, "[SQL] Checked game '" + game.getName() + "'");
 									rSet.close();
 								} else {
@@ -250,6 +252,9 @@ public class GamesInCommon {
 								result.add(game);
 								// success - add to foundProperties as TRUE
 								foundProperties.put(filter, true);
+								if (debug) {
+									logger.log(Level.FINEST, "[WEB] Game " + game.getName() + " has property \"" + filter.toString() + "\".");
+								}
 							}
 						}
 					}
@@ -267,16 +272,16 @@ public class GamesInCommon {
 								} else {
 									String filterInsertSQL = "INSERT INTO [" + filterName + "] (AppID, Name, HasProperty) VALUES (?,?,?)";
 									filterInsertStatement = connection.prepareStatement(filterInsertSQL);
-									// SQL takes booleans as 1 or 0 intead of TRUE or FALSE
 									filterInsertStatement.setInt(1, game.getAppId());
 									// no need to sanitise input for this any more, PreparedStatement takes care of it
 									filterInsertStatement.setString(2, game.getName());
+									// SQL takes booleans as 1 or 0 intead of TRUE or FALSE
 									filterInsertStatement.setBoolean(3, entry.getValue());
 									int rows = filterInsertStatement.executeUpdate();
 									if (debug) {
 										if (rows > 0) {
-											logger.log(Level.INFO, "[SQL] Data inserted for game " + game.getName() + ", property \""
-													+ filterName + "\".");
+											logger.log(Level.FINEST, "[SQL] Value " + entry.getValue().toString().toUpperCase()
+													+ " inserted for game " + game.getName() + ", property \"" + filterName + "\".");
 										}
 									}
 								}
@@ -284,7 +289,6 @@ public class GamesInCommon {
 						}
 					}
 					logger.log(Level.INFO, "[WEB] Checked game '" + game.getName() + "'");
-
 				} catch (IOException | SQLException e3) {
 					logger.log(Level.SEVERE, e3.getMessage(), e3);
 				}
