@@ -183,6 +183,7 @@ public class PlayerGui {
         playerNameModel.addElement(blank);
         
         if (!id.equals(playerNameModel.firstElement())) {
+          playerFriendsModel.clear();
           playerNameModel.clear();
           playerNameModel.addElement(id);
           userEnterTextField.setText("");
