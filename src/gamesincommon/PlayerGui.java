@@ -112,7 +112,7 @@ public class PlayerGui {
   private void initialize() {
     
     frame = new JFrame();
-    frame.setBounds(100, 100, 600, 400);
+    frame.setBounds(100, 100, 600, 600);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.getContentPane().setLayout(new MigLayout("", "[grow]", "[grow]"));
     
