@@ -1,15 +1,20 @@
 package gamesincommon;
 
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
@@ -17,7 +22,9 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
@@ -25,8 +32,6 @@ import net.miginfocom.swing.MigLayout;
 
 import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
 import com.github.koraktor.steamcondenser.steam.community.SteamId;
-import java.awt.GridLayout;
-import javax.swing.JCheckBox;
 
 public class PlayerGui {
 
@@ -48,6 +53,7 @@ public class PlayerGui {
   private JPanel playerFriendsPanel;
   private DefaultListModel<SteamId> playerFriendsModel;
   private JList<SteamId> playerFriendsList;
+  private JScrollPane playerFriendsScroll;
   
   private GamesInCommon gamesInCommon = new GamesInCommon();
 
@@ -58,13 +64,8 @@ public class PlayerGui {
     
     try {
       UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-    } catch (UnsupportedLookAndFeelException e) {
-        e.printStackTrace();
-    } catch (IllegalAccessException e) {
-        e.printStackTrace();
-    } catch (InstantiationException e) {
-        e.printStackTrace();
-    } catch (ClassNotFoundException e) {
+    } catch (UnsupportedLookAndFeelException | IllegalAccessException
+        | InstantiationException | ClassNotFoundException e) {
         e.printStackTrace();
     }
     
@@ -94,12 +95,12 @@ public class PlayerGui {
   private void initialize() {
     
     frame = new JFrame();
-    frame.setBounds(100, 100, 450, 600);
+    frame.setBounds(100, 100, 450, 400);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.getContentPane().setLayout(new MigLayout("", "[grow]", "[grow][grow]"));
+    frame.getContentPane().setLayout(new MigLayout("", "[grow]", "[grow]"));
     
     playerPanel = new JPanel();
-    frame.getContentPane().add(playerPanel, "cell 0 0,grow");
+    frame.getContentPane().add(playerPanel, "north");
     playerLayout = new CardLayout(0, 0);
     playerPanel.setLayout(playerLayout);
     
@@ -108,13 +109,13 @@ public class PlayerGui {
     userEnterPanel.setLayout(new MigLayout("", "[grow]", "[grow]"));
     
     userEnterTextField = new JTextField();
+    userEnterTextField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     userEnterPanel.add(userEnterTextField, "flowx,cell 0 0,grow");
     
     selectUserAction = new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
         addUser();
-        
       }
     };
     
@@ -138,7 +139,7 @@ public class PlayerGui {
     
     selectUserButton = new JButton("Select user");
     selectUserButton.addActionListener(selectUserAction);
-    userEnterPanel.add(selectUserButton, "cell 0 0");
+    userEnterPanel.add(selectUserButton, "cell 0 0, growy");
     
     userDisplayPanel = new JPanel();
     playerPanel.add(userDisplayPanel);
@@ -147,6 +148,7 @@ public class PlayerGui {
     playerNameModel = new DefaultListModel<SteamId>();
     playerNameList = new JList<SteamId>(playerNameModel);
     playerNameList.setCellRenderer(new PlayerListRenderer());
+    playerNameList.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     userDisplayPanel.add(playerNameList, "flowx,cell 0 0,grow");
     
     changeUserButton = new JButton("Change user");
@@ -156,62 +158,96 @@ public class PlayerGui {
         playerLayout.next(playerPanel);
       }
     });
-    userDisplayPanel.add(changeUserButton, "cell 0 0");
+    userDisplayPanel.add(changeUserButton, "cell 0 0,growy");
     
     playerFriendsPanel = new JPanel();
-    frame.getContentPane().add(playerFriendsPanel, "cell 0 1,grow");
+    frame.getContentPane().add(playerFriendsPanel, "cell 0 0,grow");
     playerFriendsPanel.setLayout(new GridLayout(1, 0, 0, 0));
     
     playerFriendsModel = new DefaultListModel<SteamId>();
     playerFriendsList = new JList<SteamId>(playerFriendsModel);
     playerFriendsList.setCellRenderer(new PlayerCheckRenderer());
-    playerFriendsPanel.add(playerFriendsList);
+    
+    playerFriendsScroll = new JScrollPane(playerFriendsList);
+    playerFriendsPanel.add(playerFriendsScroll);
     
   }
   
   private void addUser() {
     String name = userEnterTextField.getText();
     
-    if ((!name.isEmpty()) && (!name.equals("Enter player name..."))) {
-      try {  
-        SteamId id = gamesInCommon.checkSteamId(name);
-        playerNameModel.clear();
-        playerNameModel.addElement(id);
-        userEnterTextField.setText("");
-        playerLayout.next(playerPanel);
-        displayFriends(id.getFriends());
-      } 
-      catch (SteamCondenserException ex) {
-        ex.printStackTrace();
-        userEnterTextField.setText(ex.getMessage());
+    if (!name.isEmpty()) {
+      try {
+        final SteamId id = gamesInCommon.checkSteamId(name);
+        SteamId blank = null;
+        playerNameModel.addElement(blank);
+        
+        if (!id.equals(playerNameModel.firstElement())) {
+          playerNameModel.clear();
+          playerNameModel.addElement(id);
+          userEnterTextField.setText("");
+          displayFriends(id.getFriends());
+        }
+      } catch (SteamCondenserException e) {
+        e.printStackTrace();
+        userEnterTextField.setText(e.getMessage());
         userEnterTextField.selectAll();
       }
-      
     }
+
+    playerLayout.next(playerPanel);
   }
   
   private void displayFriends(SteamId[] friends) {
-    for (SteamId id : friends) {
-      try {
-        id.fetchData();
-        System.out.println("Data fetched for id: " + id.getNickname());
-        playerFriendsModel.addElement(id);
-      } catch (SteamCondenserException e) {
-        e.printStackTrace();
+    
+    final ExecutorService taskExecutor = Executors.newCachedThreadPool();
+    
+    for (final SteamId id : friends) {
+      taskExecutor.execute(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            id.fetchData();
+            System.out.println("Data fetched for id: " + id.getNickname());
+            SwingUtilities.invokeLater(new Runnable() {
+              @Override
+              public void run() {
+                addSortedFriend(id);
+              }
+            });
+            
+            System.out.println("Added element: " + id);
+          } catch (SteamCondenserException e) {
+            e.printStackTrace();
+          }
+        }
+      });
+    }
+  }
+  
+  private void addSortedFriend(final SteamId id) {
+    
+    if (playerFriendsModel.size() == 0) {
+      playerFriendsModel.addElement(id);
+      return;
+    }
+    
+    for (int i = 0; i < playerFriendsModel.size(); i++) {
+      SteamId friendId = playerFriendsModel.get(i);
+      if (id.getNickname().compareToIgnoreCase(friendId.getNickname()) < 0) {
+        playerFriendsModel.add(i, id);
+        return;
       }
     }
+    
+    playerFriendsModel.addElement(id);
+    
   }
   
   class PlayerCheckRenderer extends PlayerListRenderer {
 
     private static final long serialVersionUID = 1L;
-    private JCheckBox checkBox = new JCheckBox();
-    
-    public PlayerCheckRenderer() {
-      super();
-      add(checkBox);
-    }
-    
+
   }
   
   class PlayerListRenderer extends DefaultListCellRenderer {
@@ -229,7 +265,7 @@ public class PlayerGui {
         SteamId id = (SteamId) value;
         setText(id.getNickname());
         try {
-          ImageIcon icon = new ImageIcon(new URL(id.getAvatarIconUrl())); 
+          ImageIcon icon = new ImageIcon(new URL(id.getAvatarIconUrl()));
           setIcon(icon);
         } catch (MalformedURLException e) {
           e.printStackTrace();
