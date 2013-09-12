@@ -13,6 +13,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -32,10 +34,13 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import net.miginfocom.swing.MigLayout;
 
 import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
+import com.github.koraktor.steamcondenser.steam.community.SteamGame;
 import com.github.koraktor.steamcondenser.steam.community.SteamId;
 
 public class PlayerGui {
@@ -61,6 +66,11 @@ public class PlayerGui {
   private JScrollPane playerFriendsScroll;
   private JPopupMenu playerFriendsPopupMenu;
   private JMenuItem playerFriendsChangeItem;
+  
+  private JPanel outputPanel;
+  private DefaultListModel<SteamGame> outputListModel;
+  private JList<SteamGame> outputList;
+  private JScrollPane outputScroll;
   
   private GamesInCommon gamesInCommon = new GamesInCommon();
 
@@ -102,7 +112,7 @@ public class PlayerGui {
   private void initialize() {
     
     frame = new JFrame();
-    frame.setBounds(100, 100, 450, 400);
+    frame.setBounds(100, 100, 600, 400);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.getContentPane().setLayout(new MigLayout("", "[grow]", "[grow]"));
     
@@ -207,6 +217,17 @@ public class PlayerGui {
       }
       
     });
+    playerFriendsList.addListSelectionListener(new ListSelectionListener() {
+      @Override
+      public void valueChanged(ListSelectionEvent e) {
+        outputListModel.clear();
+        
+        @SuppressWarnings("unchecked")
+        List<SteamId> users = ((JList<SteamId>) e.getSource()).getSelectedValuesList();
+        users.add(playerNameModel.firstElement());
+        findCommonGames(users);
+      }
+    });
     
     playerFriendsScroll = new JScrollPane(playerFriendsList);
     playerFriendsPanel.add(playerFriendsScroll);
@@ -222,6 +243,17 @@ public class PlayerGui {
     
     playerFriendsPopupMenu = new JPopupMenu();
     playerFriendsPopupMenu.add(playerFriendsChangeItem);
+    
+    outputPanel = new JPanel();
+    frame.getContentPane().add(outputPanel, "cell 1 0,grow");
+    outputPanel.setLayout(new GridLayout(1, 0, 0, 0));
+    
+    outputListModel = new DefaultListModel<SteamGame>();
+    outputList = new JList<SteamGame>(outputListModel);
+    outputList.setCellRenderer(new GameListRenderer());
+    
+    outputScroll = new JScrollPane(outputList);
+    outputPanel.add(outputScroll);
     
   }
   
@@ -294,6 +326,41 @@ public class PlayerGui {
     }
     
     playerFriendsModel.addElement(id);
+    
+  }
+  
+  private void findCommonGames(List<SteamId> users) {
+    Collection<SteamGame> commonGames = gamesInCommon.findCommonGames(users);
+    for(SteamGame game : commonGames) {
+      outputListModel.addElement(game);
+    }
+  }
+  
+  class GameListRenderer extends DefaultListCellRenderer {
+
+    private static final long serialVersionUID = 1L;
+    
+    @Override
+    public Component getListCellRendererComponent(
+        JList<?> list, Object value, int index,
+        boolean isSelected, boolean cellHasFocus) {
+      
+      super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+      
+      if (value instanceof SteamGame) {
+        SteamGame game = (SteamGame) value;
+        setText(game.getName());
+        try {
+          ImageIcon icon = new ImageIcon(new URL(game.getLogoUrl()));
+          setIcon(icon);
+        } catch (MalformedURLException e) {
+          e.printStackTrace();
+        }
+      }
+       
+      return this;
+      
+    }
     
   }
   
