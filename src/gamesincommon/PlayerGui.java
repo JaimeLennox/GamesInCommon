@@ -9,6 +9,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.ExecutorService;
@@ -21,9 +23,12 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JList;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -54,6 +59,8 @@ public class PlayerGui {
   private DefaultListModel<SteamId> playerFriendsModel;
   private JList<SteamId> playerFriendsList;
   private JScrollPane playerFriendsScroll;
+  private JPopupMenu playerFriendsPopupMenu;
+  private JMenuItem playerFriendsChangeItem;
   
   private GamesInCommon gamesInCommon = new GamesInCommon();
 
@@ -155,7 +162,7 @@ public class PlayerGui {
     changeUserButton.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        playerLayout.next(playerPanel);
+        playerLayout.first(playerPanel);
         userEnterTextField.requestFocusInWindow();
       }
     });
@@ -168,9 +175,41 @@ public class PlayerGui {
     playerFriendsModel = new DefaultListModel<SteamId>();
     playerFriendsList = new JList<SteamId>(playerFriendsModel);
     playerFriendsList.setCellRenderer(new PlayerCheckRenderer());
+    playerFriendsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    playerFriendsList.addMouseListener(new MouseAdapter() {
+      @Override
+      public void mousePressed(MouseEvent e) {
+        showAndSelectMenu(e);
+      }
+      
+      @Override
+      public void mouseReleased(MouseEvent e) {
+        showAndSelectMenu(e);
+      }
+      
+      public void showAndSelectMenu(MouseEvent e) {
+        if (e.isPopupTrigger() && !playerFriendsModel.isEmpty()) {
+          playerFriendsList.setSelectedIndex(playerFriendsList.locationToIndex(e.getPoint()));
+          playerFriendsPopupMenu.show(playerFriendsList, e.getX(), e.getY());
+        }
+      }
+      
+    });
     
     playerFriendsScroll = new JScrollPane(playerFriendsList);
     playerFriendsPanel.add(playerFriendsScroll);
+    
+    playerFriendsChangeItem = new JMenuItem("Change to user");
+    playerFriendsChangeItem.addActionListener(new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+        userEnterTextField.setText(playerFriendsList.getSelectedValue().getId().toString());
+        addUser();
+      }
+    });
+    
+    playerFriendsPopupMenu = new JPopupMenu();
+    playerFriendsPopupMenu.add(playerFriendsChangeItem);
     
   }
   
@@ -197,7 +236,7 @@ public class PlayerGui {
       }
     }
 
-    playerLayout.next(playerPanel);
+    playerLayout.last(playerPanel);
   }
   
   private void displayFriends(SteamId[] friends) {
