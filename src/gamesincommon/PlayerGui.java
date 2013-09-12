@@ -156,6 +156,7 @@ public class PlayerGui {
       @Override
       public void actionPerformed(ActionEvent e) {
         playerLayout.next(playerPanel);
+        userEnterTextField.requestFocusInWindow();
       }
     });
     userDisplayPanel.add(changeUserButton, "cell 0 0,growy");
