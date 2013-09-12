@@ -19,6 +19,7 @@ import java.util.concurrent.Executors;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.DefaultListSelectionModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -28,7 +29,6 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
@@ -175,7 +175,18 @@ public class PlayerGui {
     playerFriendsModel = new DefaultListModel<SteamId>();
     playerFriendsList = new JList<SteamId>(playerFriendsModel);
     playerFriendsList.setCellRenderer(new PlayerCheckRenderer());
-    playerFriendsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+    playerFriendsList.setSelectionModel(new DefaultListSelectionModel() {
+      private static final long serialVersionUID = 1L;
+      @Override
+      public void setSelectionInterval(int index0, int index1) {
+          if(super.isSelectedIndex(index0)) {
+              super.removeSelectionInterval(index0, index1);
+          }
+          else {
+              super.addSelectionInterval(index0, index1);
+          }
+      }
+    });
     playerFriendsList.addMouseListener(new MouseAdapter() {
       @Override
       public void mousePressed(MouseEvent e) {
@@ -189,6 +200,7 @@ public class PlayerGui {
       
       public void showAndSelectMenu(MouseEvent e) {
         if (e.isPopupTrigger() && !playerFriendsModel.isEmpty()) {
+          playerFriendsList.clearSelection();
           playerFriendsList.setSelectedIndex(playerFriendsList.locationToIndex(e.getPoint()));
           playerFriendsPopupMenu.show(playerFriendsList, e.getX(), e.getY());
         }
