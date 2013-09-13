@@ -128,7 +128,6 @@ public class PlayerGui {
     userEnterPanel.setLayout(new MigLayout("", "[grow]", "[grow]"));
     
     userEnterTextField = new JTextField();
-    userEnterTextField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     userEnterPanel.add(userEnterTextField, "flowx,cell 0 0,grow");
     
     selectUserAction = new ActionListener() {
