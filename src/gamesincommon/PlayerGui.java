@@ -13,7 +13,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -68,8 +70,8 @@ public class PlayerGui {
   private JMenuItem playerFriendsChangeItem;
   
   private JPanel outputPanel;
-  private DefaultListModel<SteamGame> outputListModel;
-  private JList<SteamGame> outputList;
+  private DefaultListModel<SteamGameWrapper> outputListModel;
+  private JList<SteamGameWrapper> outputList;
   private JScrollPane outputScroll;
   
   private GamesInCommon gamesInCommon = new GamesInCommon();
@@ -248,8 +250,8 @@ public class PlayerGui {
     frame.getContentPane().add(outputPanel, "cell 1 0,grow");
     outputPanel.setLayout(new GridLayout(1, 0, 0, 0));
     
-    outputListModel = new DefaultListModel<SteamGame>();
-    outputList = new JList<SteamGame>(outputListModel);
+    outputListModel = new DefaultListModel<SteamGameWrapper>();
+    outputList = new JList<SteamGameWrapper>(outputListModel);
     outputList.setCellRenderer(new GameListRenderer());
     
     outputScroll = new JScrollPane(outputList);
@@ -331,7 +333,15 @@ public class PlayerGui {
   
   private void findCommonGames(List<SteamId> users) {
     Collection<SteamGame> commonGames = gamesInCommon.findCommonGames(users);
-    for(SteamGame game : commonGames) {
+    List<SteamGameWrapper> commonGamesList = new ArrayList<SteamGameWrapper>();
+    
+    for (SteamGame game : commonGames) {
+      commonGamesList.add(new SteamGameWrapper(game));
+    }
+    
+    Collections.sort(commonGamesList);
+    
+    for(SteamGameWrapper game : commonGamesList) {
       outputListModel.addElement(game);
     }
   }
@@ -347,11 +357,11 @@ public class PlayerGui {
       
       super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       
-      if (value instanceof SteamGame) {
-        SteamGame game = (SteamGame) value;
-        setText(game.getName());
+      if (value instanceof SteamGameWrapper) {
+        SteamGameWrapper game = (SteamGameWrapper) value;
+        setText(game.getGame().getName());
         try {
-          ImageIcon icon = new ImageIcon(new URL(game.getLogoUrl()));
+          ImageIcon icon = new ImageIcon(new URL(game.getGame().getLogoUrl()));
           setIcon(icon);
         } catch (MalformedURLException e) {
           e.printStackTrace();
