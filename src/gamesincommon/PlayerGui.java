@@ -4,7 +4,6 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -181,7 +180,7 @@ public class PlayerGui {
     
     playerFriendsPanel = new JPanel();
     frame.getContentPane().add(playerFriendsPanel, "cell 0 0,grow");
-    playerFriendsPanel.setLayout(new GridLayout(1, 0, 0, 0));
+    playerFriendsPanel.setLayout(new MigLayout("", "grow", "grow"));
     
     playerFriendsModel = new DefaultListModel<SteamId>();
     playerFriendsList = new JList<SteamId>(playerFriendsModel);
@@ -231,7 +230,7 @@ public class PlayerGui {
     });
     
     playerFriendsScroll = new JScrollPane(playerFriendsList);
-    playerFriendsPanel.add(playerFriendsScroll);
+    playerFriendsPanel.add(playerFriendsScroll, "cell 0 0, grow");
     
     playerFriendsChangeItem = new JMenuItem("Change to user");
     playerFriendsChangeItem.addActionListener(new ActionListener() {
@@ -247,14 +246,14 @@ public class PlayerGui {
     
     outputPanel = new JPanel();
     frame.getContentPane().add(outputPanel, "cell 1 0,grow");
-    outputPanel.setLayout(new GridLayout(1, 0, 0, 0));
+    outputPanel.setLayout(new MigLayout("", "grow", "grow"));
     
     outputListModel = new DefaultListModel<SteamGameWrapper>();
     outputList = new JList<SteamGameWrapper>(outputListModel);
     outputList.setCellRenderer(new GameListRenderer());
     
     outputScroll = new JScrollPane(outputList);
-    outputPanel.add(outputScroll);
+    outputPanel.add(outputScroll, "cell 0 0, grow");
     
   }
   
