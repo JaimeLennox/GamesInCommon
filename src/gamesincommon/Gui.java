@@ -4,7 +4,6 @@ import java.awt.Desktop;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Font;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -29,8 +28,6 @@ import java.util.logging.Logger;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
-import javax.swing.GroupLayout;
-import javax.swing.GroupLayout.Alignment;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -39,12 +36,13 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
-import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.SoftBevelBorder;
 import javax.swing.border.TitledBorder;
+
+import net.miginfocom.swing.MigLayout;
 
 import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
 import com.github.koraktor.steamcondenser.steam.community.SteamGame;
@@ -55,6 +53,24 @@ public class Gui {
 	final static Font font = new Font("Tahoma", Font.PLAIN, 18);
 
 	private JFrame gamesInCommonFrame;
+	
+	private JPanel consolePanel;
+	private JPanel optionsPanel;
+	private JPanel outputPanel;
+	private JPanel playerPanel;
+	private JPanel scanPanel;
+	private FilterPanel filterPanel;
+	
+	private JScrollPane consoleScrollPane;
+	private JScrollPane outputScrollPane;
+	private JScrollPane playerListScrollPane;
+	
+	private JButton addButton;
+	private JButton removeButton;
+	private JButton scanButton;
+	
+	private JTextPane consoleText;
+	private JTextField addPlayerText;
 
 	private JList<SteamGameWrapper> outputList;
   private JList<SteamId> playerList;
@@ -63,9 +79,6 @@ public class Gui {
 	private DefaultListModel<SteamId> playerListModel;
 
 	private ArrayList<SteamId> playerIdList;
-
-	private JTextField addPlayerText;
-	private FilterPanel filterPanel;
 
 	private GamesInCommon gamesInCommon;
 
@@ -127,78 +140,22 @@ public class Gui {
 		gamesInCommonFrame.setBounds(100, 100, 900, 400);
 		gamesInCommonFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		final JPanel playerPanel = new JPanel();
+		playerPanel = new JPanel();
 		playerPanel.setBorder(new TitledBorder(null, "Players", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 
-		JPanel optionsPanel = new JPanel();
+		optionsPanel = new JPanel();
 		optionsPanel.setBorder(new TitledBorder(null, "Options", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 
-		JPanel consolePanel = new JPanel();
+		consolePanel = new JPanel();
 		consolePanel.setBorder(new SoftBevelBorder(BevelBorder.LOWERED, null, null, null, null));
-
-		JPanel scanPanel = new JPanel();
+		
+		scanPanel = new JPanel();
 		scanPanel.setBorder(new TitledBorder(null, "", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 
-		JPanel outputPanel = new JPanel();
+		outputPanel = new JPanel();
 		outputPanel.setBorder(new TitledBorder(null, "Output", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		GroupLayout groupLayout = new GroupLayout(gamesInCommonFrame.getContentPane());
-		groupLayout.setHorizontalGroup(groupLayout.createParallelGroup(Alignment.TRAILING).addGroup(
-				groupLayout
-						.createSequentialGroup()
-						.addContainerGap()
-						.addGroup(
-								groupLayout
-										.createParallelGroup(Alignment.TRAILING)
-										.addComponent(consolePanel, Alignment.LEADING, GroupLayout.DEFAULT_SIZE, 858, Short.MAX_VALUE)
-										.addGroup(
-												groupLayout
-														.createSequentialGroup()
-														.addGroup(
-																groupLayout
-																		.createParallelGroup(Alignment.TRAILING, false)
-																		.addGroup(
-																				groupLayout
-																						.createSequentialGroup()
-																						.addComponent(optionsPanel,
-																								GroupLayout.DEFAULT_SIZE,
-																								GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-																						.addPreferredGap(ComponentPlacement.UNRELATED)
-																						.addComponent(scanPanel,
-																								GroupLayout.PREFERRED_SIZE, 134,
-																								GroupLayout.PREFERRED_SIZE))
-																		.addComponent(playerPanel, GroupLayout.PREFERRED_SIZE, 430,
-																				GroupLayout.PREFERRED_SIZE))
-														.addPreferredGap(ComponentPlacement.RELATED)
-														.addComponent(outputPanel, GroupLayout.PREFERRED_SIZE, 421,
-																GroupLayout.PREFERRED_SIZE))).addContainerGap()));
-		groupLayout.setVerticalGroup(groupLayout.createParallelGroup(Alignment.LEADING).addGroup(
-				groupLayout
-						.createSequentialGroup()
-						.addGap(15)
-						.addGroup(
-								groupLayout
-										.createParallelGroup(Alignment.LEADING)
-										.addGroup(
-												groupLayout
-														.createSequentialGroup()
-														.addComponent(playerPanel, GroupLayout.PREFERRED_SIZE, 148,
-																GroupLayout.PREFERRED_SIZE)
-														.addGap(18)
-														.addGroup(
-																groupLayout
-																		.createParallelGroup(Alignment.TRAILING)
-																		.addComponent(scanPanel, GroupLayout.PREFERRED_SIZE, 75,
-																				GroupLayout.PREFERRED_SIZE)
-																		.addComponent(optionsPanel, GroupLayout.PREFERRED_SIZE, 83,
-																				GroupLayout.PREFERRED_SIZE)))
-										.addComponent(outputPanel, GroupLayout.PREFERRED_SIZE, 249, GroupLayout.PREFERRED_SIZE))
-						.addPreferredGap(ComponentPlacement.RELATED)
-						.addComponent(consolePanel, GroupLayout.PREFERRED_SIZE, 27, Short.MAX_VALUE).addContainerGap()));
-		outputPanel.setLayout(new GridLayout(1, 0, 0, 0));
-
-		JScrollPane outputScrollPane = new JScrollPane();
-		outputPanel.add(outputScrollPane);
-
+		
+		outputScrollPane = new JScrollPane();
 		outputListModel = new DefaultListModel<SteamGameWrapper>();
 		outputList = new JList<SteamGameWrapper>(outputListModel);
 		outputList.setFont(new Font("Tahoma", Font.PLAIN, 18));
@@ -236,34 +193,15 @@ public class Gui {
 			}
 		});
 
-		JScrollPane consoleScrollPane = new JScrollPane();
+		consoleScrollPane = new JScrollPane();
 
-		GroupLayout gl_consolePanel = new GroupLayout(consolePanel);
-		gl_consolePanel.setHorizontalGroup(gl_consolePanel.createParallelGroup(Alignment.LEADING).addComponent(consoleScrollPane,
-				GroupLayout.DEFAULT_SIZE, 852, Short.MAX_VALUE));
-		gl_consolePanel.setVerticalGroup(gl_consolePanel.createParallelGroup(Alignment.LEADING).addComponent(consoleScrollPane,
-				GroupLayout.PREFERRED_SIZE, 21, Short.MAX_VALUE));
-
-		JTextPane consoleText = tpHandler.getTextPane();
+		consoleText = tpHandler.getTextPane();
 		consoleScrollPane.setViewportView(consoleText);
 		consoleText.setFont(new Font("Tahoma", Font.PLAIN, 18));
 
-		consolePanel.setLayout(gl_consolePanel);
-
 		filterPanel = new FilterPanel();
-		GroupLayout gl_optionsPanel = new GroupLayout(optionsPanel);
-		gl_optionsPanel.setHorizontalGroup(gl_optionsPanel.createParallelGroup(Alignment.LEADING).addGroup(
-				gl_optionsPanel.createSequentialGroup().addContainerGap()
-						.addComponent(filterPanel, GroupLayout.PREFERRED_SIZE, 205, Short.MAX_VALUE).addContainerGap()));
-		gl_optionsPanel.setVerticalGroup(gl_optionsPanel.createParallelGroup(Alignment.LEADING).addGroup(
-				gl_optionsPanel.createSequentialGroup().addContainerGap()
-						.addComponent(filterPanel, GroupLayout.DEFAULT_SIZE, 32, Short.MAX_VALUE).addContainerGap()));
-		optionsPanel.setLayout(gl_optionsPanel);
 
-		JPanel playerButtonPanel = new JPanel();
-		playerButtonPanel.setLayout(new GridLayout(1, 2, 0, 0));
-
-		JButton scanButton = new JButton("Scan");
+		scanButton = new JButton("Scan");
 		scanButton.setFont(new Font("Tahoma", Font.PLAIN, 18));
 
 		scanButton.addActionListener(new ActionListener() {
@@ -277,11 +215,8 @@ public class Gui {
 				scanThread.start();
 			}
 		});
-		scanPanel.setLayout(new GridLayout(0, 1, 0, 0));
 
-		scanPanel.add(scanButton);
-
-		JButton addButton = new JButton("Add");
+		addButton = new JButton("Add");
 		addButton.setFont(new Font("Tahoma", Font.PLAIN, 18));
 
 		addButton.addMouseListener(new MouseListener() {
@@ -309,9 +244,7 @@ public class Gui {
 
 		});
 
-		playerButtonPanel.add(addButton);
-
-		JButton removeButton = new JButton("Remove");
+		removeButton = new JButton("Remove");
 		removeButton.setFont(new Font("Tahoma", Font.PLAIN, 18));
 
 		removeButton.addMouseListener(new MouseListener() {
@@ -338,8 +271,6 @@ public class Gui {
 			}
 
 		});
-
-		playerButtonPanel.add(removeButton);
 
 		addPlayerText = new JTextField();
 		addPlayerText.setColumns(10);
@@ -389,31 +320,8 @@ public class Gui {
 
 		});
 
-		JScrollPane playerListScrollPane = new JScrollPane();
-		GroupLayout gl_playerPanel = new GroupLayout(playerPanel);
-		gl_playerPanel.setHorizontalGroup(
-		  gl_playerPanel.createParallelGroup(Alignment.LEADING)
-		    .addGroup(gl_playerPanel.createSequentialGroup()
-		      .addContainerGap()
-		      .addGroup(gl_playerPanel.createParallelGroup(Alignment.LEADING, false)
-		        .addComponent(playerButtonPanel, GroupLayout.DEFAULT_SIZE, GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-		        .addComponent(addPlayerText, GroupLayout.DEFAULT_SIZE, 209, Short.MAX_VALUE))
-		      .addPreferredGap(ComponentPlacement.RELATED, 9, Short.MAX_VALUE)
-		      .addComponent(playerListScrollPane, GroupLayout.PREFERRED_SIZE, 176, GroupLayout.PREFERRED_SIZE)
-		      .addContainerGap())
-		);
-		gl_playerPanel.setVerticalGroup(
-		  gl_playerPanel.createParallelGroup(Alignment.LEADING)
-		    .addGroup(gl_playerPanel.createSequentialGroup()
-		      .addContainerGap()
-		      .addGroup(gl_playerPanel.createParallelGroup(Alignment.LEADING)
-		        .addComponent(playerListScrollPane, GroupLayout.PREFERRED_SIZE, 106, GroupLayout.PREFERRED_SIZE)
-		        .addGroup(gl_playerPanel.createSequentialGroup()
-		          .addComponent(addPlayerText, GroupLayout.PREFERRED_SIZE, 49, GroupLayout.PREFERRED_SIZE)
-		          .addPreferredGap(ComponentPlacement.UNRELATED)
-		          .addComponent(playerButtonPanel, GroupLayout.DEFAULT_SIZE, 38, Short.MAX_VALUE)))
-		      .addContainerGap())
-		);
+		playerListScrollPane = new JScrollPane();
+
 
 		// initialise data model for playerList, which tells the JList about the data it expects
 		playerListModel = new DefaultListModel<SteamId>();
@@ -459,9 +367,32 @@ public class Gui {
 			public void mouseReleased(MouseEvent e) {
 			}
 		});
+		
+		playerPanel.setLayout(new MigLayout("", "grow", "grow"));
+		playerPanel.add(addPlayerText, "cell 0 0, grow");
+		playerPanel.add(playerListScrollPane, "cell 1 0, span 0 2, grow");
+		playerPanel.add(addButton, "cell 0 1, split 2, grow");
+		playerPanel.add(removeButton, "grow");
+		
+		outputPanel.setLayout(new MigLayout("", "grow", "grow"));
+		outputPanel.add(outputScrollPane, "grow");
+		
+		optionsPanel.setLayout(new MigLayout("", "grow", "grow"));
+		optionsPanel.add(filterPanel, "grow");
+		
+		scanPanel.setLayout(new MigLayout("", "grow", "grow"));
+    scanPanel.add(scanButton, "grow");
+    
+    consolePanel.setLayout(new MigLayout("", "grow", "grow"));
+    consolePanel.add(consoleScrollPane, "grow");
+		
+		gamesInCommonFrame.getContentPane().setLayout(new MigLayout("", "grow", "grow"));		
+		gamesInCommonFrame.getContentPane().add(playerPanel, "grow");
+		gamesInCommonFrame.getContentPane().add(outputPanel, "grow, wrap, span 0 2");
+		gamesInCommonFrame.getContentPane().add(optionsPanel, "grow, split 2");
+		gamesInCommonFrame.getContentPane().add(scanPanel, "grow");
+		gamesInCommonFrame.getContentPane().add(consolePanel, "south");
 
-		playerPanel.setLayout(gl_playerPanel);
-		gamesInCommonFrame.getContentPane().setLayout(groupLayout);
 	}
 	
 	class PlayerListRenderer extends DefaultListCellRenderer {
