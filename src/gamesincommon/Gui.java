@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
@@ -28,6 +29,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
@@ -143,19 +145,19 @@ public class Gui {
 		gamesInCommonFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		playerPanel = new JPanel();
-		playerPanel.setBorder(new TitledBorder(null, "Players", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		playerPanel.setBorder(BorderFactory.createTitledBorder("Players"));
 
 		optionsPanel = new JPanel();
-		optionsPanel.setBorder(new TitledBorder(null, "Options", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		optionsPanel.setBorder(BorderFactory.createTitledBorder("Options"));
 
 		consolePanel = new JPanel();
-		consolePanel.setBorder(new SoftBevelBorder(BevelBorder.LOWERED, null, null, null, null));
+		consolePanel.setBorder(BorderFactory.createTitledBorder("Console"));
 		
 		scanPanel = new JPanel();
-		scanPanel.setBorder(new TitledBorder(null, "", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		scanPanel.setBorder(BorderFactory.createTitledBorder("Scan"));
 
 		outputPanel = new JPanel();
-		outputPanel.setBorder(new TitledBorder(null, "Output", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		outputPanel.setBorder(BorderFactory.createTitledBorder("Output"));
 		
 		outputScrollPane = new JScrollPane();
 		outputListModel = new DefaultListModel<SteamGameWrapper>();
@@ -226,7 +228,6 @@ public class Gui {
 		addPlayerText.setColumns(10);
 
 		addPlayerText.addFocusListener(new FocusListener() {
-
 			@Override
 			public void focusGained(FocusEvent e) {
 				addPlayerText.setText("");
@@ -240,34 +241,19 @@ public class Gui {
 					addPlayerText.setFont(new Font("Tahoma", Font.ITALIC, 20));
 				}
 			}
-
 		});
 
-		addPlayerText.addKeyListener(new KeyListener() {
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
+		addPlayerText.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-
-				char c = e.getKeyChar();
-
+  			char c = e.getKeyChar();
 				if (c == KeyEvent.VK_ENTER) {
 					addName();
 				}
-
 			}
-
 		});
 
 		playerListScrollPane = new JScrollPane();
-
 
 		// initialise data model for playerList, which tells the JList about the data it expects
 		playerListModel = new DefaultListModel<SteamId>();
@@ -283,7 +269,7 @@ public class Gui {
 		playerListScrollPane.setViewportView(playerList);
 
 		// messages the selected user on double click
-		playerList.addMouseListener(new MouseListener() {
+		playerList.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
@@ -295,22 +281,6 @@ public class Gui {
 						logger.log(Level.SEVERE, e1.getMessage());
 					}
 				}
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent e) {
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e) {
 			}
 		});
 		
