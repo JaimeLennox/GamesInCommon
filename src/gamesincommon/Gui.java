@@ -11,6 +11,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
@@ -163,7 +164,7 @@ public class Gui {
 		outputScrollPane.setViewportView(outputList);
 
 		// launches the selected steam game on double click
-		outputList.addMouseListener(new MouseListener() {
+		outputList.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
@@ -175,22 +176,6 @@ public class Gui {
 						logger.log(Level.SEVERE, e1.getMessage());
 					}
 				}
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent e) {
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e) {
 			}
 		});
 
@@ -220,57 +205,21 @@ public class Gui {
 		addButton = new JButton("Add");
 		addButton.setFont(new Font("Tahoma", Font.PLAIN, 18));
 
-		addButton.addMouseListener(new MouseListener() {
-
+		addButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				addName();
 			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e) {
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent e) {
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-			}
-
 		});
 
 		removeButton = new JButton("Remove");
 		removeButton.setFont(new Font("Tahoma", Font.PLAIN, 18));
 
-		removeButton.addMouseListener(new MouseListener() {
-
+		removeButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				removeName();
 			}
-
-			@Override
-			public void mousePressed(MouseEvent e) {
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e) {
-			}
-
-			@Override
-			public void mouseEntered(MouseEvent e) {
-			}
-
-			@Override
-			public void mouseExited(MouseEvent e) {
-			}
-
 		});
 
 		addPlayerText = new JTextField();
@@ -280,20 +229,16 @@ public class Gui {
 
 			@Override
 			public void focusGained(FocusEvent e) {
-
 				addPlayerText.setText("");
 				addPlayerText.setFont(new Font("Tahoma", Font.PLAIN, 20));
-
 			}
 
 			@Override
 			public void focusLost(FocusEvent e) {
-
 				if (addPlayerText.getText().equals("")) {
 					addPlayerText.setText("Enter player name...");
 					addPlayerText.setFont(new Font("Tahoma", Font.ITALIC, 20));
 				}
-
 			}
 
 		});
