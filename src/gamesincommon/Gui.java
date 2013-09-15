@@ -136,7 +136,6 @@ public class Gui {
 
 		gamesInCommonFrame = new JFrame();
 		gamesInCommonFrame.setTitle("Games in Common");
-		gamesInCommonFrame.setBounds(100, 100, 900, 400);
 		gamesInCommonFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		playerPanel = new JPanel();
@@ -155,6 +154,7 @@ public class Gui {
 		outputPanel.setBorder(BorderFactory.createTitledBorder("Output"));
 		
 		outputScrollPane = new JScrollPane();
+		outputScrollPane.setMinimumSize(new Dimension(450, outputScrollPane.getMinimumSize().height));
 		outputListModel = new DefaultListModel<SteamGameWrapper>();
 		outputList = new JList<SteamGameWrapper>(outputListModel);
 		outputList.setFont(font);
@@ -303,6 +303,8 @@ public class Gui {
 		gamesInCommonFrame.getContentPane().add(optionsPanel, "grow, split 2");
 		gamesInCommonFrame.getContentPane().add(scanPanel, "grow");
 		gamesInCommonFrame.getContentPane().add(consolePanel, "south");
+		
+		gamesInCommonFrame.pack();
 
 	}
 	
