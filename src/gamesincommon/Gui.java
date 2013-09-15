@@ -2,6 +2,7 @@ package gamesincommon;
 
 import java.awt.Desktop;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -123,7 +124,7 @@ public class Gui {
 		ConsoleHandler cHandler = new ConsoleHandler();
 		cHandler.setLevel(Level.FINEST);
 		// logging to GUI
-		TextPaneHandler tpHandler = new TextPaneHandler();
+		TextPaneHandler tpHandler = new TextPaneHandler(font.getSize());
 		tpHandler.setLevel(Level.INFO);
 		// attach handlers
 		logger.addHandler(cHandler);
@@ -197,7 +198,7 @@ public class Gui {
 
 		consoleText = tpHandler.getTextPane();
 		consoleScrollPane.setViewportView(consoleText);
-		consoleText.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		consoleScrollPane.setMinimumSize(new Dimension(consoleScrollPane.getMinimumSize().width, 100));
 
 		filterPanel = new FilterPanel();
 

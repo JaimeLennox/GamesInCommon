@@ -20,7 +20,7 @@ public class TextPaneHandler extends Handler {
 	private SimpleAttributeSet normalAttributes;
 	private SimpleAttributeSet errorAttributes;
 
-	public TextPaneHandler() {
+	public TextPaneHandler(int fontSize) {
 		super();
 		textPane = new JTextPane();
 		textPane.setEditable(false);
@@ -28,10 +28,10 @@ public class TextPaneHandler extends Handler {
 		caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 
 		normalAttributes = new SimpleAttributeSet();
-		StyleConstants.setFontSize(normalAttributes, 12);
+		StyleConstants.setFontSize(normalAttributes, fontSize);
 
 		errorAttributes = new SimpleAttributeSet();
-		StyleConstants.setFontSize(errorAttributes, 12);
+		StyleConstants.setFontSize(errorAttributes, fontSize);
 		StyleConstants.setForeground(errorAttributes, Color.RED);
 	}
 
