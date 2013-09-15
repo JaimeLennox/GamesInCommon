@@ -11,10 +11,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -42,9 +40,6 @@ import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
-import javax.swing.border.BevelBorder;
-import javax.swing.border.SoftBevelBorder;
-import javax.swing.border.TitledBorder;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -162,7 +157,7 @@ public class Gui {
 		outputScrollPane = new JScrollPane();
 		outputListModel = new DefaultListModel<SteamGameWrapper>();
 		outputList = new JList<SteamGameWrapper>(outputListModel);
-		outputList.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		outputList.setFont(font);
 		outputScrollPane.setViewportView(outputList);
 
 		// launches the selected steam game on double click
@@ -190,7 +185,7 @@ public class Gui {
 		filterPanel = new FilterPanel();
 
 		scanButton = new JButton("Scan");
-		scanButton.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		scanButton.setFont(font);
 
 		scanButton.addActionListener(new ActionListener() {
 			@Override
@@ -205,7 +200,7 @@ public class Gui {
 		});
 
 		addButton = new JButton("Add");
-		addButton.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		addButton.setFont(font);
 
 		addButton.addMouseListener(new MouseAdapter() {
 			@Override
@@ -215,7 +210,7 @@ public class Gui {
 		});
 
 		removeButton = new JButton("Remove");
-		removeButton.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		removeButton.setFont(font);
 
 		removeButton.addMouseListener(new MouseAdapter() {
 			@Override
@@ -226,19 +221,18 @@ public class Gui {
 
 		addPlayerText = new JTextField();
 		addPlayerText.setColumns(10);
+		addPlayerText.setFont(font);
 
 		addPlayerText.addFocusListener(new FocusListener() {
 			@Override
 			public void focusGained(FocusEvent e) {
 				addPlayerText.setText("");
-				addPlayerText.setFont(new Font("Tahoma", Font.PLAIN, 20));
 			}
 
 			@Override
 			public void focusLost(FocusEvent e) {
 				if (addPlayerText.getText().equals("")) {
 					addPlayerText.setText("Enter player name...");
-					addPlayerText.setFont(new Font("Tahoma", Font.ITALIC, 20));
 				}
 			}
 		});
@@ -254,6 +248,7 @@ public class Gui {
 		});
 
 		playerListScrollPane = new JScrollPane();
+		playerListScrollPane.setMinimumSize(new Dimension(playerListScrollPane.getMinimumSize().width, 105));
 
 		// initialise data model for playerList, which tells the JList about the data it expects
 		playerListModel = new DefaultListModel<SteamId>();
@@ -261,7 +256,7 @@ public class Gui {
 		playerIdList = new ArrayList<SteamId>(10);
 		// initialise JList for player list display
 		playerList = new JList<SteamId>(playerListModel);
-		playerList.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		playerList.setFont(font);
 		playerList.setCellRenderer(new PlayerListRenderer());
 		playerList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 		playerList.setLayoutOrientation(JList.VERTICAL);
