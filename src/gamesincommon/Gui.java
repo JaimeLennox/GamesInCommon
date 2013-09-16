@@ -1,7 +1,8 @@
 package gamesincommon;
 
-import java.awt.Desktop;
+import java.awt.CardLayout;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -14,9 +15,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,7 +40,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -67,6 +68,7 @@ public class Gui {
 	private JButton addButton;
 	private JButton removeButton;
 	private JButton scanButton;
+	private JButton cancelButton;
 	
 	private JTextPane consoleText;
 	private JTextField addPlayerText;
@@ -186,17 +188,23 @@ public class Gui {
 
 		scanButton = new JButton("Scan");
 		scanButton.setFont(font);
-
+		
 		scanButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Thread scanThread = new Thread() {
-					public void run() {
-						scan();
-					}
-				};
-				scanThread.start();
+			  ((CardLayout) scanPanel.getLayout()).last(scanPanel);
+				new Scanner<Void, Void>().execute();	
 			}
+		});
+
+		cancelButton = new JButton("Cancel");
+		cancelButton.setFont(font);
+		
+		cancelButton.addActionListener(new ActionListener() {
+		  @Override
+		  public void actionPerformed(ActionEvent e) {
+		    new Scanner<Void, Void>().cancel(true);
+		  }
 		});
 
 		addButton = new JButton("Add");
@@ -291,8 +299,9 @@ public class Gui {
 		optionsPanel.setLayout(new MigLayout("", "grow", "grow"));
 		optionsPanel.add(filterPanel, "grow");
 		
-		scanPanel.setLayout(new MigLayout("", "grow", "grow"));
-    scanPanel.add(scanButton, "grow");
+		scanPanel.setLayout(new CardLayout(10, 10));
+    scanPanel.add(scanButton);
+    scanPanel.add(cancelButton);
     
     consolePanel.setLayout(new MigLayout("", "grow", "grow"));
     consolePanel.add(consoleScrollPane, "grow");
@@ -333,8 +342,20 @@ public class Gui {
       return this;
     }
 
-
 	}
+
+	class Scanner<T,V> extends SwingWorker<T,V> {
+    @Override
+    protected T doInBackground() throws Exception {
+      scan();
+      return null;
+    }
+    
+    @Override
+    protected void done() {
+      ((CardLayout) scanPanel.getLayout()).first(scanPanel);
+    }
+  };
 
 	/**
 	 * Removes all handlers for the given logger
@@ -357,8 +378,10 @@ public class Gui {
 	 */
 	public void showCommonGames(final Collection<SteamGame> games) {
 
-		if (games == null)
+		if (games == null) {
 			return;
+		}
+		
 		List<SteamGameWrapper> gameList = new ArrayList<SteamGameWrapper>();
 
 		for (SteamGame steamGame : games) {
@@ -371,21 +394,11 @@ public class Gui {
 		logger.log(Level.INFO, "Total games in common: " + games.size());
 
 		for (final SteamGameWrapper str : gameList) {
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					outputListModel.addElement(str);
-				}
-			});
-
+		  outputListModel.addElement(str);
 		}
 
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				outputList.setSelectedIndex(0);
-			}
-		});
-
+		outputList.setSelectedIndex(0);
+		
 	}
 
 	/**
