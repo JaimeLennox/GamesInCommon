@@ -84,6 +84,8 @@ public class Gui {
 	private GamesInCommon gamesInCommon;
 
 	private Logger logger;
+	
+	private Scanner<Void, Void> scanner;
 
 	/**
 	 * Launch the application.
@@ -193,7 +195,8 @@ public class Gui {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 			  ((CardLayout) scanPanel.getLayout()).last(scanPanel);
-				new Scanner<Void, Void>().execute();	
+				scanner = new Scanner<Void, Void>();
+				scanner.execute();
 			}
 		});
 
@@ -203,7 +206,7 @@ public class Gui {
 		cancelButton.addActionListener(new ActionListener() {
 		  @Override
 		  public void actionPerformed(ActionEvent e) {
-		    new Scanner<Void, Void>().cancel(true);
+		    scanner.cancel(true);
 		  }
 		});
 
