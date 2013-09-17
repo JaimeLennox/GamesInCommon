@@ -115,23 +115,38 @@ public class GamesInCommon {
 	 */
 	public Collection<SteamGame> findCommonGames(List<SteamId> users) {
 
-		List<Collection<SteamGame>> userGames = new ArrayList<Collection<SteamGame>>();
+    final List<Collection<SteamGame>> userGames = new ArrayList<Collection<SteamGame>>();
+    
+    final CountDownLatch latch = new CountDownLatch(users.size());
+    ExecutorService taskExecutor = Executors.newCachedThreadPool();
 
-		for (SteamId name : users) {
-			try {
-				userGames.add(getGames(name));
-				logger.log(Level.INFO, "Added user " + name.getNickname() + " (" + name.getSteamId64() + ").");
-			} catch (SteamCondenserException e) {
-				logger.log(Level.SEVERE, e.getMessage());
-				return null;
-			}
-		}
+    for (final SteamId name : users) {
+      taskExecutor.execute(new Runnable() {
+        @Override
+        public void run() {
+          try {
+            userGames.add(getGames(name));
+            logger.log(Level.INFO, "Added user " + name.getNickname() + " (" + name.getSteamId64() + ").");
+          } catch (SteamCondenserException e) {
+            logger.log(Level.SEVERE, e.getMessage());
+          }
+          latch.countDown();
+        }
+      });
+    }
+    
+    try {
+      latch.await();
+    } catch (InterruptedException e) {
+      logger.log(Level.INFO, "Cancelled.");
+      return null;
+    }
 
-		Collection<SteamGame> commonGames = mergeSets(userGames);
-		logger.log(Level.INFO, "Search complete.");
+    Collection<SteamGame> commonGames = mergeSets(userGames);
+    logger.log(Level.INFO, "Search complete.");
 
-		return commonGames;
-	}
+    return commonGames;
+  }
 
 	public SteamId checkSteamId(String nameToCheck) throws SteamCondenserException {
 		try {
