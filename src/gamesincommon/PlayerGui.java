@@ -3,6 +3,7 @@ package gamesincommon;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -113,7 +114,7 @@ public class PlayerGui {
   private void initialize() {
     
     frame = new JFrame();
-    frame.setBounds(100, 100, 600, 600);
+    frame.setBounds(100, 100, 1000, 600);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.getContentPane().setLayout(new MigLayout("", "[grow]", "[grow]"));
     
@@ -247,6 +248,7 @@ public class PlayerGui {
     outputList.setCellRenderer(new GameListRenderer());
     
     outputScroll = new JScrollPane(outputList);
+    outputScroll.setMinimumSize(new Dimension(500, outputScroll.getMinimumSize().height));
     outputPanel.add(outputScroll, "cell 0 0, grow");
     
   }
