@@ -118,6 +118,10 @@ public class GamesInCommon {
 		List<Collection<SteamGame>> userGames = new ArrayList<Collection<SteamGame>>();
 
 		for (SteamId name : users) {
+		  if (Thread.interrupted()) {
+		    logger.log(Level.INFO, "Cancelled.");
+		    return null;
+		  }
 			try {
 				userGames.add(getGames(name));
 				logger.log(Level.INFO, "Added user " + name.getNickname() + " (" + name.getSteamId64() + ").");
@@ -343,9 +347,10 @@ public class GamesInCommon {
 		}
 		
 		try {
-      latch.await();
+		  latch.await();
     } catch (InterruptedException e) {
-      logger.log(Level.SEVERE, e.getMessage(), e);
+      logger.log(Level.INFO, "Cancelled");
+      return null;
     }
 		
 		return result;
@@ -370,6 +375,10 @@ public class GamesInCommon {
 		int index = 0;
 
 		for (int i = 0; i < userGames.size(); i++) {
+		  if (Thread.interrupted()) {
+		    logger.log(Level.INFO, "Cancelled.");
+		    return null;
+		  }
 			if (userGames.get(i).size() > size) {
 				size = userGames.get(i).size();
 				index = i;
@@ -379,6 +388,10 @@ public class GamesInCommon {
 		result.addAll(userGames.get(index));
 
 		for (int i = 0; i < userGames.size(); i++) {
+		  if (Thread.interrupted()) {
+		    logger.log(Level.INFO, "Cancelled.");
+		    return null;
+		  }
 			result.retainAll(userGames.get(i));
 		}
 
