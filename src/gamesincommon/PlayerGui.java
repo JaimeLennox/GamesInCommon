@@ -6,8 +6,8 @@ import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.MalformedURLException;
@@ -136,13 +136,7 @@ public class PlayerGui {
       }
     };
     
-    userEnterTextField.addKeyListener(new KeyListener() {
-      @Override
-      public void keyPressed(KeyEvent e) {
-      }
-      @Override
-      public void keyReleased(KeyEvent e) {
-      }
+    userEnterTextField.addKeyListener(new KeyAdapter() {
       @Override
       public void keyTyped(KeyEvent e) {
         
