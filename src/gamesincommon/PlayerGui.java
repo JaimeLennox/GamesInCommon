@@ -222,7 +222,7 @@ public class PlayerGui {
           if (!users.isEmpty()) {
             users.add(playerNameModel.firstElement());
             findCommonGames(users);
-    }
+          }
         }
       }
     });
@@ -335,6 +335,11 @@ public class PlayerGui {
   
   private void findCommonGames(List<SteamId> users) {
     Collection<SteamGame> commonGames = gamesInCommon.findCommonGames(users);
+    
+    if (commonGames == null) {
+      return;
+    }
+    
     List<SteamGameWrapper> commonGamesList = new ArrayList<SteamGameWrapper>();
     
     for (SteamGame game : commonGames) {
