@@ -279,8 +279,6 @@ public class PlayerGui {
         }
       } catch (SteamCondenserException e) {
         e.printStackTrace();
-        userEnterTextField.setText(e.getMessage());
-        userEnterTextField.selectAll();
       }
     }
 
