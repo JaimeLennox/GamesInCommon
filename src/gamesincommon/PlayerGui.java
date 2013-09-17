@@ -75,6 +75,7 @@ public class PlayerGui {
   private JScrollPane outputScroll;
   
   private GamesInCommon gamesInCommon = new GamesInCommon();
+  private int listIndex;
 
   /**
    * Launch the application.
@@ -205,8 +206,7 @@ public class PlayerGui {
       
       public void showAndSelectMenu(MouseEvent e) {
         if (e.isPopupTrigger() && !playerFriendsModel.isEmpty()) {
-          playerFriendsList.clearSelection();
-          playerFriendsList.setSelectedIndex(playerFriendsList.locationToIndex(e.getPoint()));
+          listIndex = playerFriendsList.locationToIndex(playerFriendsList.getMousePosition());
           playerFriendsPopupMenu.show(playerFriendsList, e.getX(), e.getY());
         }
       }
@@ -215,12 +215,15 @@ public class PlayerGui {
     playerFriendsList.addListSelectionListener(new ListSelectionListener() {
       @Override
       public void valueChanged(ListSelectionEvent e) {
-        outputListModel.clear();
-        
-        @SuppressWarnings("unchecked")
-        List<SteamId> users = ((JList<SteamId>) e.getSource()).getSelectedValuesList();
-        users.add(playerNameModel.firstElement());
-        findCommonGames(users);
+        if (!e.getValueIsAdjusting()) {
+          outputListModel.clear();
+          @SuppressWarnings("unchecked")
+          List<SteamId> users = ((JList<SteamId>) e.getSource()).getSelectedValuesList();
+          if (!users.isEmpty()) {
+            users.add(playerNameModel.firstElement());
+            findCommonGames(users);
+    }
+        }
       }
     });
     
@@ -231,8 +234,13 @@ public class PlayerGui {
     playerFriendsChangeItem.addActionListener(new ActionListener() {
       @Override
       public void actionPerformed(ActionEvent e) {
-        userEnterTextField.setText(playerFriendsList.getSelectedValue().getId().toString());
-        addUser();
+        SwingUtilities.invokeLater(new Runnable() {
+          @Override
+          public void run() {
+            userEnterTextField.setText(playerFriendsModel.get(listIndex).getId().toString());
+            addUser();
+          }
+        });
       }
     });
     
