@@ -178,7 +178,7 @@ public class PlayerGui {
     
     playerFriendsModel = new DefaultListModel<SteamId>();
     playerFriendsList = new JList<SteamId>(playerFriendsModel);
-    playerFriendsList.setCellRenderer(new PlayerCheckRenderer());
+    playerFriendsList.setCellRenderer(new PlayerListRenderer());
     playerFriendsList.setSelectionModel(new DefaultListSelectionModel() {
       private static final long serialVersionUID = 1L;
       @Override
@@ -364,12 +364,6 @@ public class PlayerGui {
       
     }
     
-  }
-  
-  class PlayerCheckRenderer extends PlayerListRenderer {
-
-    private static final long serialVersionUID = 1L;
-
   }
   
   class PlayerListRenderer extends DefaultListCellRenderer {
