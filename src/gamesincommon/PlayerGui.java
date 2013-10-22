@@ -13,9 +13,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -70,8 +68,8 @@ public class PlayerGui {
   private JMenuItem playerFriendsChangeItem;
   
   private JPanel outputPanel;
-  private DefaultListModel<SteamGameWrapper> outputListModel;
-  private JList<SteamGameWrapper> outputList;
+  private DefaultListModel<SteamGame> outputListModel;
+  private JList<SteamGame> outputList;
   private JScrollPane outputScroll;
   
   private GamesInCommon gamesInCommon = new GamesInCommon();
@@ -218,10 +216,10 @@ public class PlayerGui {
         if (!e.getValueIsAdjusting()) {
           outputListModel.clear();
           @SuppressWarnings("unchecked")
-          List<SteamId> users = ((JList<SteamId>) e.getSource()).getSelectedValuesList();
+          final List<SteamId> users = ((JList<SteamId>) e.getSource()).getSelectedValuesList();
           if (!users.isEmpty()) {
-            users.add(playerNameModel.firstElement());
-            findCommonGames(users);
+              users.add(playerNameModel.firstElement());
+              findCommonGames(users);
           }
         }
       }
@@ -251,8 +249,8 @@ public class PlayerGui {
     frame.getContentPane().add(outputPanel, "cell 1 0,grow");
     outputPanel.setLayout(new MigLayout("", "grow", "grow"));
     
-    outputListModel = new DefaultListModel<SteamGameWrapper>();
-    outputList = new JList<SteamGameWrapper>(outputListModel);
+    outputListModel = new DefaultListModel<SteamGame>();
+    outputList = new JList<SteamGame>(outputListModel);
     outputList.setCellRenderer(new GameListRenderer());
     
     outputScroll = new JScrollPane(outputList);
@@ -337,18 +335,47 @@ public class PlayerGui {
     if (commonGames == null) {
       return;
     }
+
+    displayCommonGames(commonGames);
+  }
+  
+  public void displayCommonGames(Collection<SteamGame> commonGames) {
     
-    List<SteamGameWrapper> commonGamesList = new ArrayList<SteamGameWrapper>();
+    final ExecutorService taskExecutor = Executors.newCachedThreadPool();
     
-    for (SteamGame game : commonGames) {
-      commonGamesList.add(new SteamGameWrapper(game));
+    for (final SteamGame game : commonGames) {
+      taskExecutor.execute(new Runnable() {
+        @Override
+        public void run() {
+          SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+              addSortedGame(game);
+            }
+          });       
+        }
+      });
     }
     
-    Collections.sort(commonGamesList);
+  }
+  
+  private void addSortedGame(final SteamGame game) {
     
-    for(SteamGameWrapper game : commonGamesList) {
+    if (outputListModel.size() == 0) {
       outputListModel.addElement(game);
+      return;
     }
+    
+    for (int i = 0; i < outputListModel.size(); i++) {
+      SteamGame steamGame = outputListModel.get(i);
+      if (game.getName().compareToIgnoreCase(steamGame.getName()) < 0) {
+        outputListModel.add(i, game);
+        return;
+      }
+    }
+    
+    outputListModel.addElement(game);
+    
   }
   
   class GameListRenderer extends DefaultListCellRenderer {
@@ -362,11 +389,11 @@ public class PlayerGui {
       
       super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
       
-      if (value instanceof SteamGameWrapper) {
-        SteamGameWrapper game = (SteamGameWrapper) value;
-        setText(game.getGame().getName());
+      if (value instanceof SteamGame) {
+        SteamGame game = (SteamGame) value;
+        setText(game.getName());
         try {
-          ImageIcon icon = new ImageIcon(new URL(game.getGame().getLogoUrl()));
+          ImageIcon icon = new ImageIcon(new URL(game.getLogoUrl()));
           setIcon(icon);
         } catch (MalformedURLException e) {
           e.printStackTrace();
