@@ -2,7 +2,7 @@ package gamesincommon;
 
 enum FilterType {
 
-  multiplayer("Multi-player"), coop("Co-op");
+  multiplayer("Multi-player"), coop("Co-op"), localcoop("Local Co-op");
 
   private String value;
 
