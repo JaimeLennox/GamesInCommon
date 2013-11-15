@@ -1,7 +1,6 @@
 package gamesincommon;
 
 import java.awt.CardLayout;
-import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.EventQueue;
@@ -15,10 +14,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -29,9 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JList;
@@ -53,28 +48,28 @@ public class Gui {
 	final static Font font = new Font("Tahoma", Font.PLAIN, 18);
 
 	private JFrame gamesInCommonFrame;
-	
+
 	private JPanel consolePanel;
 	private JPanel optionsPanel;
 	private JPanel outputPanel;
 	private JPanel playerPanel;
 	private JPanel scanPanel;
 	private FilterPanel filterPanel;
-	
+
 	private JScrollPane consoleScrollPane;
 	private JScrollPane outputScrollPane;
 	private JScrollPane playerListScrollPane;
-	
+
 	private JButton addButton;
 	private JButton removeButton;
 	private JButton scanButton;
 	private JButton cancelButton;
-	
+
 	private JTextPane consoleText;
 	private JTextField addPlayerText;
 
 	private JList<SteamGameWrapper> outputList;
-  private JList<SteamId> playerList;
+	private JList<SteamId> playerList;
 
 	private DefaultListModel<SteamGameWrapper> outputListModel;
 	private DefaultListModel<SteamId> playerListModel;
@@ -84,7 +79,7 @@ public class Gui {
 	private GamesInCommon gamesInCommon;
 
 	private Logger logger;
-	
+
 	private Scanner<Void, Void> scanner;
 
 	/**
@@ -150,13 +145,13 @@ public class Gui {
 
 		consolePanel = new JPanel();
 		consolePanel.setBorder(BorderFactory.createTitledBorder("Console"));
-		
+
 		scanPanel = new JPanel();
 		scanPanel.setBorder(BorderFactory.createTitledBorder("Scan"));
 
 		outputPanel = new JPanel();
 		outputPanel.setBorder(BorderFactory.createTitledBorder("Output"));
-		
+
 		outputScrollPane = new JScrollPane();
 		outputScrollPane.setMinimumSize(new Dimension(450, outputScrollPane.getMinimumSize().height));
 		outputListModel = new DefaultListModel<SteamGameWrapper>();
@@ -190,11 +185,11 @@ public class Gui {
 
 		scanButton = new JButton("Scan");
 		scanButton.setFont(font);
-		
+
 		scanButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-			  ((CardLayout) scanPanel.getLayout()).last(scanPanel);
+				((CardLayout) scanPanel.getLayout()).last(scanPanel);
 				scanner = new Scanner<Void, Void>();
 				scanner.execute();
 			}
@@ -202,12 +197,12 @@ public class Gui {
 
 		cancelButton = new JButton("Cancel");
 		cancelButton.setFont(font);
-		
+
 		cancelButton.addActionListener(new ActionListener() {
-		  @Override
-		  public void actionPerformed(ActionEvent e) {
-		    scanner.cancel(true);
-		  }
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				scanner.cancel(true);
+			}
 		});
 
 		addButton = new JButton("Add");
@@ -251,7 +246,7 @@ public class Gui {
 		addPlayerText.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-  			char c = e.getKeyChar();
+				char c = e.getKeyChar();
 				if (c == KeyEvent.VK_ENTER) {
 					addName();
 				}
@@ -280,7 +275,7 @@ public class Gui {
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
 					SteamId playerId = playerIdList.get(playerList.getSelectedIndex());
-					//logger.log(Level.INFO, "Messaging " + playerId.getNickname() + " (" + playerId.getSteamId64() + ")");
+					// logger.log(Level.INFO, "Messaging " + playerId.getNickname() + " (" + playerId.getSteamId64() + ")");
 					try {
 						Desktop.getDesktop().browse(new URI("steam://friends/message/" + playerId.getSteamId64()));
 					} catch (IOException | URISyntaxException e1) {
@@ -289,76 +284,49 @@ public class Gui {
 				}
 			}
 		});
-		
+
 		playerPanel.setLayout(new MigLayout("", "grow", "grow"));
 		playerPanel.add(addPlayerText, "cell 0 0, grow");
 		playerPanel.add(playerListScrollPane, "cell 1 0, span 0 2, grow");
 		playerPanel.add(addButton, "cell 0 1, split 2, grow");
 		playerPanel.add(removeButton, "grow");
-		
+
 		outputPanel.setLayout(new MigLayout("", "grow", "grow"));
 		outputPanel.add(outputScrollPane, "grow");
-		
+
 		optionsPanel.setLayout(new MigLayout("", "grow", "grow"));
 		optionsPanel.add(filterPanel, "grow");
-		
+
 		scanPanel.setLayout(new CardLayout(10, 10));
-    scanPanel.add(scanButton);
-    scanPanel.add(cancelButton);
-    
-    consolePanel.setLayout(new MigLayout("", "grow", "grow"));
-    consolePanel.add(consoleScrollPane, "grow");
-		
-		gamesInCommonFrame.getContentPane().setLayout(new MigLayout("", "grow", "grow"));		
+		scanPanel.add(scanButton);
+		scanPanel.add(cancelButton);
+
+		consolePanel.setLayout(new MigLayout("", "grow", "grow"));
+		consolePanel.add(consoleScrollPane, "grow");
+
+		gamesInCommonFrame.getContentPane().setLayout(new MigLayout("", "grow", "grow"));
 		gamesInCommonFrame.getContentPane().add(playerPanel, "grow");
 		gamesInCommonFrame.getContentPane().add(outputPanel, "grow, wrap, span 0 2");
 		gamesInCommonFrame.getContentPane().add(optionsPanel, "grow, split 2");
 		gamesInCommonFrame.getContentPane().add(scanPanel, "grow");
 		gamesInCommonFrame.getContentPane().add(consolePanel, "south");
-		
+
 		gamesInCommonFrame.pack();
 
 	}
-	
-	class PlayerListRenderer extends DefaultListCellRenderer {
-	  
-    private static final long serialVersionUID = 1L;
 
-    @Override
-    public Component getListCellRendererComponent(
-        JList<?> list, Object value, int index,
-        boolean isSelected, boolean cellHasFocus) {
-      
-      super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-      
-      if (value instanceof SteamId) {
-        SteamId id = (SteamId) value;
-        setText(id.getNickname());
-        try {
-          ImageIcon icon = new ImageIcon(new URL(id.getAvatarIconUrl())); 
-          setIcon(icon);
-        } catch (MalformedURLException e) {
-          e.printStackTrace();
-        }
-      }
-       
-      return this;
-    }
+	class Scanner<T, V> extends SwingWorker<T, V> {
+		@Override
+		protected T doInBackground() throws Exception {
+			scan();
+			return null;
+		}
 
-	}
-
-	class Scanner<T,V> extends SwingWorker<T,V> {
-    @Override
-    protected T doInBackground() throws Exception {
-      scan();
-      return null;
-    }
-    
-    @Override
-    protected void done() {
-      ((CardLayout) scanPanel.getLayout()).first(scanPanel);
-    }
-  };
+		@Override
+		protected void done() {
+			((CardLayout) scanPanel.getLayout()).first(scanPanel);
+		}
+	};
 
 	/**
 	 * Removes all handlers for the given logger
@@ -384,7 +352,7 @@ public class Gui {
 		if (games == null) {
 			return;
 		}
-		
+
 		List<SteamGameWrapper> gameList = new ArrayList<SteamGameWrapper>();
 
 		for (SteamGame steamGame : games) {
@@ -397,11 +365,11 @@ public class Gui {
 		logger.log(Level.INFO, "Total games in common: " + games.size());
 
 		for (final SteamGameWrapper str : gameList) {
-		  outputListModel.addElement(str);
+			outputListModel.addElement(str);
 		}
 
 		outputList.setSelectedIndex(0);
-		
+
 	}
 
 	/**
