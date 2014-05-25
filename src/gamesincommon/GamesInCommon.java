@@ -32,7 +32,7 @@ public class GamesInCommon {
 	Connection connection = null;
 
 	private Logger logger;
-
+    private boolean forceWebCheck;
 	private boolean debug;
 
 	public GamesInCommon() {
@@ -185,7 +185,7 @@ public class GamesInCommon {
 
 		final Collection<SteamGame> result = new HashSet<SteamGame>();
 		final CountDownLatch latch = new CountDownLatch(gameList.size());
-    final ExecutorService taskExecutor = Executors.newCachedThreadPool();
+        final ExecutorService taskExecutor = Executors.newCachedThreadPool();
     
 		// start going through the games
 		for (final SteamGame game : gameList) {
@@ -274,6 +274,10 @@ public class GamesInCommon {
             if (filterToCheck.getValue().equals(new Boolean(true))) {
               needsWebCheck = true;
             }
+          }
+
+          if (forceWebCheck) {
+              needsWebCheck = true;
           }
 
           // if all data on this game was in the database, no webcheck needed.
@@ -409,5 +413,13 @@ public class GamesInCommon {
 		return result;
 
 	}
+
+    /**
+     * Enable or disable forced web checking.
+     * @param required Whether to enable or disable force web checking.
+     */
+    public void requireWebCheck(boolean required) {
+        forceWebCheck = required;
+    }
 
 }

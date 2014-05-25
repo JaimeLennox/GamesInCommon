@@ -5,14 +5,7 @@ import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -25,17 +18,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.JTextPane;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingWorker;
+import javax.swing.*;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -64,6 +47,11 @@ public class Gui {
 	private JButton removeButton;
 	private JButton scanButton;
 	private JButton cancelButton;
+
+    private JMenuBar menuBar;
+    private JMenu menu;
+    private JCheckBoxMenuItem menuWebCheck;
+    private JMenuItem menuExit;
 
 	private JTextPane consoleText;
 	private JTextField addPlayerText;
@@ -225,23 +213,51 @@ public class Gui {
 			}
 		});
 
+        menuBar = new JMenuBar();
+        menu = new JMenu("Menu");
+
+        menuWebCheck = new JCheckBoxMenuItem("Force web check");
+        menuWebCheck.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED) {
+                    gamesInCommon.requireWebCheck(true);
+                }
+                else if (e.getStateChange() == ItemEvent.DESELECTED) {
+                    gamesInCommon.requireWebCheck(false);
+                }
+            }
+        });
+
+        menuExit = new JMenuItem("Exit");
+        menuExit.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+        });
+
+        menu.add(menuWebCheck);
+        menu.add(menuExit);
+        menuBar.add(menu)
+;
 		addPlayerText = new JTextField();
 		addPlayerText.setColumns(10);
 		addPlayerText.setFont(font);
 
 		addPlayerText.addFocusListener(new FocusListener() {
-			@Override
-			public void focusGained(FocusEvent e) {
-				addPlayerText.setText("");
-			}
+            @Override
+            public void focusGained(FocusEvent e) {
+                addPlayerText.setText("");
+            }
 
-			@Override
-			public void focusLost(FocusEvent e) {
-				if (addPlayerText.getText().equals("")) {
-					addPlayerText.setText("Enter player name...");
-				}
-			}
-		});
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (addPlayerText.getText().equals("")) {
+                    addPlayerText.setText("Enter player name...");
+                }
+            }
+        });
 
 		addPlayerText.addKeyListener(new KeyAdapter() {
 			@Override
@@ -271,19 +287,19 @@ public class Gui {
 
 		// messages the selected user on double click
 		playerList.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (e.getClickCount() == 2) {
-					SteamId playerId = playerIdList.get(playerList.getSelectedIndex());
-					// logger.log(Level.INFO, "Messaging " + playerId.getNickname() + " (" + playerId.getSteamId64() + ")");
-					try {
-						Desktop.getDesktop().browse(new URI("steam://friends/message/" + playerId.getSteamId64()));
-					} catch (IOException | URISyntaxException e1) {
-						logger.log(Level.SEVERE, e1.getMessage());
-					}
-				}
-			}
-		});
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    SteamId playerId = playerIdList.get(playerList.getSelectedIndex());
+                    // logger.log(Level.INFO, "Messaging " + playerId.getNickname() + " (" + playerId.getSteamId64() + ")");
+                    try {
+                        Desktop.getDesktop().browse(new URI("steam://friends/message/" + playerId.getSteamId64()));
+                    } catch (IOException | URISyntaxException e1) {
+                        logger.log(Level.SEVERE, e1.getMessage());
+                    }
+                }
+            }
+        });
 
 		playerPanel.setLayout(new MigLayout("", "grow", "grow"));
 		playerPanel.add(addPlayerText, "cell 0 0, grow");
@@ -310,6 +326,7 @@ public class Gui {
 		gamesInCommonFrame.getContentPane().add(optionsPanel, "grow, split 2");
 		gamesInCommonFrame.getContentPane().add(scanPanel, "grow");
 		gamesInCommonFrame.getContentPane().add(consolePanel, "south");
+        gamesInCommonFrame.setJMenuBar(menuBar);
 
 		gamesInCommonFrame.pack();
 
@@ -330,9 +347,8 @@ public class Gui {
 
 	/**
 	 * Removes all handlers for the given logger
-	 * 
-	 * @param logger
-	 *            to clear handlers for
+	 *
+	 * @param loggerToClear logger to clear handlers for
 	 */
 	private void removeHandlers(Logger loggerToClear) {
 		Handler[] handlers = loggerToClear.getHandlers();
