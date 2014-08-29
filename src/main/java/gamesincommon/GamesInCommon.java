@@ -42,7 +42,7 @@ public class GamesInCommon {
 		// initialise database connector
 		connection = InitialDBCheck();
 		if (connection == null) {
-			throw new RuntimeException("Connection could not be establised to local database.");
+			throw new RuntimeException("Connection could not be established to local database.");
 		}
 		// default debug value false
 		debug = false;
@@ -69,7 +69,7 @@ public class GamesInCommon {
 			result = DriverManager.getConnection("jdbc:sqlite:gamedata.db");
 			// check all tables from the information schema
 			Statement statement = result.createStatement();
-			ResultSet resultSet = null;
+			ResultSet resultSet;
 			// and copy resultset to List object to enable random access
 			List<String> tableList = new ArrayList<String>();
 			// skip if new database, as it'll all be new anyway
@@ -218,6 +218,7 @@ public class GamesInCommon {
             tableSet = tableSelectStatement.executeQuery();
           } catch (SQLException e1) {
             logger.log(Level.SEVERE, e1.getMessage(), e1);
+            return;
           }
           // filtersToCheck tells the following webcheck loop which filters need checking and insertion into the DB
           Map<FilterType, Boolean> filtersToCheck = new HashMap<FilterType, Boolean>();
@@ -261,9 +262,8 @@ public class GamesInCommon {
                 rSet.close();
               }
             }
-            if (tableSet != null) {
-              tableSet.close();
-            }
+
+            tableSet.close();
           } catch (SQLException e2) {
             logger.log(Level.SEVERE, e2.getMessage(), e2);
           }
@@ -311,7 +311,7 @@ public class GamesInCommon {
               // if we have any filters that needed data, match them up with foundProperties and insert them into the database
               // IF filterToCheck -> true INSERT INTO DB foundProperties.value();
               for (Map.Entry<FilterType, Boolean> filterToCheck : filtersToCheck.entrySet()) {
-                if (filterToCheck.getValue().equals(new Boolean(true))) {
+                if (filterToCheck.getValue().equals(true)) {
                   if (debug) {
                     logger.log(Level.FINEST, "[WEB] Checking game '" + game.getName() + "' for property "
                         + filterToCheck.getKey());
@@ -402,13 +402,13 @@ public class GamesInCommon {
 
 		result.addAll(userGames.get(index));
 
-		for (int i = 0; i < userGames.size(); i++) {
-		  if (Thread.interrupted()) {
-		    logger.log(Level.INFO, "Cancelled.");
-		    return null;
-		  }
-			result.retainAll(userGames.get(i));
-		}
+        for (Collection<SteamGame> userGame : userGames) {
+            if (Thread.interrupted()) {
+                logger.log(Level.INFO, "Cancelled.");
+                return null;
+            }
+            result.retainAll(userGame);
+        }
 
 		return result;
 

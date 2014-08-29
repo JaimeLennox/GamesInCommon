@@ -31,4 +31,4 @@ enum FilterType {
     throw new IllegalArgumentException();
     
   }
-};
+}

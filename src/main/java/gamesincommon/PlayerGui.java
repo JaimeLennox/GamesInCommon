@@ -18,22 +18,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.DefaultListModel;
-import javax.swing.DefaultListSelectionModel;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JList;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -113,7 +98,7 @@ public class PlayerGui {
 
         frame = new JFrame("Games in Common");
         frame.setBounds(100, 100, 1000, 600);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(new MigLayout("", "[grow]", "[grow]"));
 
         playerPanel = new JPanel();
@@ -263,6 +248,7 @@ public class PlayerGui {
 
         if (!name.isEmpty()) {
             try {
+                // I don't know what's going on here but it looks really strange
                 final SteamId id = gamesInCommon.checkSteamId(name);
                 SteamId blank = null;
                 playerNameModel.addElement(blank);

@@ -33,7 +33,7 @@ public class Console {
 
     System.out.println("Enter users one by one, typing 'FIN' when complete:");
 
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in));) {
+    try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in))) {
 
       String input;
       input = br.readLine();

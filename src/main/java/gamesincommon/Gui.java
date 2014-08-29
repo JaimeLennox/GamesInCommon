@@ -87,16 +87,16 @@ public class Gui {
 	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
-			public void run() {
-				try {
-					Gui window = new Gui();
-					window.initialize();
-					window.gamesInCommonFrame.setVisible(true);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-		});
+            public void run() {
+                try {
+                    Gui window = new Gui();
+                    window.initialize();
+                    window.gamesInCommonFrame.setVisible(true);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 	}
 
 	/**
@@ -135,7 +135,7 @@ public class Gui {
 
 		gamesInCommonFrame = new JFrame();
 		gamesInCommonFrame.setTitle("Games in Common");
-		gamesInCommonFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		gamesInCommonFrame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
 		playerPanel = new JPanel();
 		playerPanel.setBorder(BorderFactory.createTitledBorder("Players"));
@@ -366,7 +366,7 @@ public class Gui {
 		protected void done() {
 			((CardLayout) scanPanel.getLayout()).first(scanPanel);
 		}
-	};
+	}
 
 	/**
 	 * Removes all handlers for the given logger
