@@ -6,25 +6,36 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.*;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.swing.*;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import net.miginfocom.swing.MigLayout;
 
 import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
 import com.github.koraktor.steamcondenser.steam.community.SteamGame;
 import com.github.koraktor.steamcondenser.steam.community.SteamId;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
 public class Gui {
 
@@ -45,6 +56,7 @@ public class Gui {
 
 	private JButton addButton;
 	private JButton removeButton;
+    private JButton searchButton;
 	private JButton scanButton;
 	private JButton cancelButton;
 
@@ -213,6 +225,16 @@ public class Gui {
 			}
 		});
 
+        searchButton = new JButton("Search");
+        searchButton.setFont(font);
+
+        searchButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                searchName();
+            }
+        });
+
         menuBar = new JMenuBar();
         menu = new JMenu("Menu");
 
@@ -304,7 +326,8 @@ public class Gui {
 		playerPanel.setLayout(new MigLayout("", "grow", "grow"));
 		playerPanel.add(addPlayerText, "cell 0 0, grow");
 		playerPanel.add(playerListScrollPane, "cell 1 0, span 0 2, grow");
-		playerPanel.add(addButton, "cell 0 1, split 2, grow");
+		playerPanel.add(addButton, "cell 0 1, split 3, grow");
+        playerPanel.add(searchButton, "grow");
 		playerPanel.add(removeButton, "grow");
 
 		outputPanel.setLayout(new MigLayout("", "grow", "grow"));
@@ -431,6 +454,102 @@ public class Gui {
 			playerListModel.removeElement(playerList.getSelectedValue());
 		}
 	}
+
+    /**
+     * Searches steam for the given name. This works with nicknames.
+     */
+    private void searchName() {
+        Set<SteamId> searchResults = new HashSet<SteamId>();
+
+        HttpClient httpClient = new DefaultHttpClient();
+        HttpGet sessionIdRequest = new HttpGet("http://steamcommunity.com");
+
+        String sessionId = "";
+
+        try {
+            HttpResponse sessionIdResponse = httpClient.execute(sessionIdRequest);
+            BufferedReader br = new BufferedReader(new InputStreamReader(sessionIdResponse.getEntity().getContent()));
+
+            String line;
+            while ((line = br.readLine()) != null) {
+                // Retrieve session id through really dodgy string methods because I'm bad at Java
+                String[] singleLine = line.split("\"");
+                if (singleLine[0].contains("g_sessionID")) {
+                    sessionId = singleLine[1];
+                    break;
+                }
+            }
+            br.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        HttpGet searchRequest = new HttpGet("http://steamcommunity.com/search/SearchCommunityAjax?text="
+                + addPlayerText.getText() + "&filter=users&sessionid=" + sessionId + "&steamid_user=false&page=1");
+
+        try {
+            HttpResponse response = httpClient.execute(searchRequest);
+
+            JSONObject searchJson = new JSONObject(new JSONTokener(response.getEntity().getContent()));
+
+            if (searchJson.getInt("success") == 1) {
+                Document doc = Jsoup.parse(searchJson.getString("html"));
+
+                Elements names = doc.getElementsByClass("searchPersonaName");
+                for (Element name : names) {
+                    // ID is the last element of the href.
+                    String playerUrl = name.attr("href");
+                    String[] urlSplit = playerUrl.split("/");
+                    SteamId id = gamesInCommon.checkSteamId(urlSplit[urlSplit.length - 1]);
+
+                    if (id != null) {
+                        String logId = id.getCustomUrl();
+                        if (logId == null) logId = id.getBaseUrl();
+                        logger.log(Level.FINEST, "Found potential search match: " + logId);
+                        searchResults.add(id);
+                    }
+                }
+            }
+
+        } catch (IOException | SteamCondenserException e) {
+            e.printStackTrace();
+        }
+
+        popupWindow(searchResults);
+    }
+
+    private void popupWindow(Set<SteamId> searchResults) {
+        final JDialog popup = new JDialog(gamesInCommonFrame);
+        DefaultListModel<SteamId> popupPlayerModel = new DefaultListModel<SteamId>();
+        JList<SteamId> popupPlayers = new JList<SteamId>();
+
+        popupPlayers.setCellRenderer(new PlayerListRenderer());
+        popupPlayers.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (!e.getValueIsAdjusting()) {
+                    @SuppressWarnings("unchecked")
+                    final List<SteamId> users = ((JList<SteamId>) e.getSource()).getSelectedValuesList();
+                    if (!users.isEmpty()) {
+                        addPlayerText.setText(Long.toString(users.get(0).getSteamId64()));
+                        popup.dispose();
+                        addName();
+                    }
+                }
+            }
+        });
+
+        popupPlayers.setModel(popupPlayerModel);
+        popup.add(popupPlayers);
+
+        for (SteamId id : searchResults) {
+            popupPlayerModel.addElement(id);
+        }
+
+        popup.setVisible(true);
+        popup.pack();
+        popup.setLocationRelativeTo(null);
+    }
 
 	/**
 	 * Finds common games within the users of playerList, then applies any selected filters and displays the result
