@@ -9,9 +9,6 @@ import javax.swing.JPanel;
 
 public class FilterPanel extends JPanel {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private ArrayList<JCheckBox> filterCheckBoxes;
 
