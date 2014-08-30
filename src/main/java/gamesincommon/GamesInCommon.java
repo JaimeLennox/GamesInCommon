@@ -64,6 +64,7 @@ public class GamesInCommon {
 
 		Connection result = null;
 		try {
+            Class.forName("org.sqlite.JDBC");
 			// attempt to connect to the database
 			result = DriverManager.getConnection("jdbc:sqlite:gamedata.db");
 			// check all tables from the information schema
@@ -99,7 +100,7 @@ public class GamesInCommon {
 							+ "Name VARCHAR( 64 )," + "HasProperty BOOLEAN NOT NULL ON CONFLICT FAIL );");
 				}
 			}
-		} catch (SQLException e) {
+		} catch (ClassNotFoundException | SQLException e) {
 			logger.log(Level.SEVERE, e.getMessage(), e);
 		}
 		return result;
