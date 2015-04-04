@@ -155,6 +155,7 @@ public class GamesInCommon {
             latch.await();
         } catch (InterruptedException e) {
             logger.log(Level.INFO, "Cancelled.");
+            taskExecutor.shutdownNow();
             return null;
         }
 
@@ -241,6 +242,7 @@ public class GamesInCommon {
 
         // start going through the games
         for (final SteamGame game : gameList) {
+
             taskExecutor.execute(new Runnable() {
 
                 @Override
@@ -425,7 +427,7 @@ public class GamesInCommon {
 		int index = 0;
 
         for (int i = 0; i < userGames.size(); i++) {
-            if (Thread.interrupted()) {
+            if (Thread.currentThread().isInterrupted()) {
                 logger.log(Level.INFO, "Cancelled.");
                 return null;
             }
@@ -438,7 +440,7 @@ public class GamesInCommon {
 		result.addAll(userGames.get(index));
 
         for (Collection<SteamGame> userGame : userGames) {
-            if (Thread.interrupted()) {
+            if (Thread.currentThread().isInterrupted()) {
                 logger.log(Level.INFO, "Cancelled.");
                 return null;
             }
