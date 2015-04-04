@@ -77,7 +77,6 @@ public class GamesInCommon {
         PreparedStatement createStatement = connection.prepareStatement(
                 "CREATE TABLE games                 (" +
                 "id    INT   NOT NULL,               " +
-                "name  TEXT  NOT NULL,               " +
                 "PRIMARY KEY(id)  ON CONFLICT IGNORE)"
         );
         createStatement.executeUpdate();
@@ -226,8 +225,8 @@ public class GamesInCommon {
             );
             insertGameStatement = connection.prepareStatement(
                     "INSERT OR REPLACE INTO games " +
-                    "(id, name) " +
-                    "VALUES (?, ?)"
+                    "(id) " +
+                    "VALUES (?)"
             );
             insertGameFilterStatement = connection.prepareStatement(
                     "INSERT INTO gamefilters " +
@@ -251,6 +250,8 @@ public class GamesInCommon {
                     }
                     catch (SQLException e) {
                         logger.log(Level.SEVERE, e.getMessage(), e);
+                        latch.countDown();
+                        return;
                     }
                     catch (InterruptedException e) {
                         // This indicates that we've been cancelled .
@@ -357,7 +358,6 @@ public class GamesInCommon {
 
                             synchronized (taskExecutor) {
                                 insertGameStatement.setInt(1, game.getAppId());
-                                insertGameStatement.setString(2, game.getName());
                                 int inserted  = insertGameStatement.executeUpdate();
 
                                 if (debug) {
