@@ -1,6 +1,6 @@
 package gamesincommon;
 
-import com.github.koraktor.steamcondenser.steam.community.SteamGame;
+import com.github.koraktor.steamcondenser.community.SteamGame;
 
 public class SteamGameWrapper implements Comparable<SteamGameWrapper> {
 	

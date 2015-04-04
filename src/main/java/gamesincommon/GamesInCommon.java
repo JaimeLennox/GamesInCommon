@@ -24,8 +24,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
-import com.github.koraktor.steamcondenser.steam.community.SteamGame;
-import com.github.koraktor.steamcondenser.steam.community.SteamId;
+import com.github.koraktor.steamcondenser.community.SteamGame;
+import com.github.koraktor.steamcondenser.community.SteamId;
 
 public class GamesInCommon {
 

@@ -8,8 +8,8 @@ import java.util.Collection;
 import java.util.List;
 
 import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
-import com.github.koraktor.steamcondenser.steam.community.SteamGame;
-import com.github.koraktor.steamcondenser.steam.community.SteamId;
+import com.github.koraktor.steamcondenser.community.SteamGame;
+import com.github.koraktor.steamcondenser.community.SteamId;
 
 public class Console {
 

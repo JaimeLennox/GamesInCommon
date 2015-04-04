@@ -8,7 +8,7 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.ImageIcon;
 import javax.swing.JList;
 
-import com.github.koraktor.steamcondenser.steam.community.SteamId;
+import com.github.koraktor.steamcondenser.community.SteamId;
 
 public class PlayerListRenderer extends DefaultListCellRenderer {
 

@@ -24,8 +24,8 @@ import javax.swing.event.ListSelectionListener;
 import net.miginfocom.swing.MigLayout;
 
 import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
-import com.github.koraktor.steamcondenser.steam.community.SteamGame;
-import com.github.koraktor.steamcondenser.steam.community.SteamId;
+import com.github.koraktor.steamcondenser.community.SteamGame;
+import com.github.koraktor.steamcondenser.community.SteamId;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
@@ -88,13 +88,7 @@ public class Gui {
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
             public void run() {
-                try {
-                    Gui window = new Gui();
-                    window.initialize();
-                    window.gamesInCommonFrame.setVisible(true);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+				new Gui();
             }
         });
 	}
@@ -104,6 +98,7 @@ public class Gui {
 	 */
 	public Gui() {
 		initialize();
+		gamesInCommonFrame.setVisible(true);
 	}
 
 	/**
