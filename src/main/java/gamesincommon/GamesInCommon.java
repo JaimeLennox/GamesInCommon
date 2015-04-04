@@ -1,22 +1,15 @@
 package gamesincommon;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -29,82 +22,106 @@ import com.github.koraktor.steamcondenser.community.SteamId;
 
 public class GamesInCommon {
 
-	Connection connection = null;
+    private Logger logger;
+    private boolean forceWebCheck = false;
+    private static final String DB_NAME = "gamedata.db";
 
-	private Logger logger;
-    private boolean forceWebCheck;
-	private boolean debug;
+    // Enable/disable debug mode - default value is false.
+	private boolean debug = false;
 
 	public GamesInCommon() {
 		// initialise logger
 		logger = Logger.getLogger(GamesInCommon.class.getName());
 		logger.setLevel(Level.ALL);
-		// initialise database connector
-		connection = InitialDBCheck();
-		if (connection == null) {
-			throw new RuntimeException("Connection could not be established to local database.");
-		}
-		// default debug value false
-		debug = false;
+
+        initDatabase();
 	}
 
 	public Logger getLogger() {
 		return logger;
 	}
 
-	/**
-	 * Creates local database, if necessary, and creates tables for all enum entries.
-	 * 
-	 * @return A Connection object to the database.
-	 */
-	private Connection InitialDBCheck() {
-		// newDB is TRUE if the database is about to be created by DriverManager.getConnection();
-		File dbFile = new File("gamedata.db");
-		boolean newDB = !dbFile.exists();
+    /**
+     * Setup the database, adding all current filters.
+     */
+    private void initDatabase() {
+        File dbfile = new File(DB_NAME);
+        boolean newDb = !dbfile.exists();
 
-		Connection result = null;
-		try {
+        try {
             Class.forName("org.sqlite.JDBC");
-			// attempt to connect to the database
-			result = DriverManager.getConnection("jdbc:sqlite:gamedata.db");
-			// check all tables from the information schema
-			Statement statement = result.createStatement();
-			ResultSet resultSet;
-			// and copy resultset to List object to enable random access
-			List<String> tableList = new ArrayList<String>();
-			// skip if new database, as it'll all be new anyway
-			if (!newDB) {
-				// query db
-				resultSet = statement.executeQuery("SELECT name FROM sqlite_master WHERE type='table';");
-				// copy to tableList
-				while (resultSet.next()) {
-					tableList.add(resultSet.getString("name"));
-				}
-			} else {
-				logger.log(Level.INFO, "New database created.");
-			}
-			// check all filtertypes have a corresponding table, create if one if not present
-			// skip check and create if the database is new
-			for (FilterType filter : FilterType.values()) {
-				boolean filterFound = false;
-				if (!newDB) {
-					for (String tableName : tableList) {
-						if (tableName.equals(filter.getValue())) {
-							filterFound = true;
-						}
-					}
-				}
-				// if the tableList is traversed and the filter was not found, create a table for it
-				if (!filterFound) {
-					statement.executeUpdate("CREATE TABLE [" + filter.getValue() + "] ( AppID VARCHAR( 16 )  PRIMARY KEY ON CONFLICT FAIL,"
-							+ "Name VARCHAR( 64 )," + "HasProperty BOOLEAN NOT NULL ON CONFLICT FAIL );");
-				}
-			}
-		} catch (ClassNotFoundException | SQLException e) {
-			logger.log(Level.SEVERE, e.getMessage(), e);
-		}
-		return result;
-	}
+            Connection connection = DriverManager.getConnection("jdbc:sqlite:" + DB_NAME);
+
+            if (newDb) {
+                logger.log(Level.INFO, "New database created.");
+                createTables(connection);
+            }
+
+            addFilters(connection);
+            connection.close();
+        }
+        catch (ClassNotFoundException | SQLException e) {
+            logger.log(Level.SEVERE, e.getMessage());
+            throw new RuntimeException(e);
+        }
+
+        logger.log(Level.INFO, "Database initialised.");
+    }
+
+    /**
+     * Create new tables for a newly created database.
+     * @param connection A connection to the GIC database.
+     * @throws SQLException
+     */
+    private void createTables(Connection connection) throws SQLException {
+        PreparedStatement createStatement = connection.prepareStatement(
+                "CREATE TABLE games                 (" +
+                "id    INT   NOT NULL,               " +
+                "name  TEXT  NOT NULL,               " +
+                "PRIMARY KEY(id)  ON CONFLICT IGNORE)"
+        );
+        createStatement.executeUpdate();
+
+        createStatement = connection.prepareStatement(
+                "CREATE TABLE filters               (" +
+                "id  INT  NOT NULL,                  " +
+                "PRIMARY KEY(id)  ON CONFLICT IGNORE)"
+        );
+        createStatement.executeUpdate();
+
+        createStatement = connection.prepareStatement(
+                "CREATE TABLE gamefilters                             (" +
+                "filter_id  INT  NOT NULL,                             " +
+                "game_id    INT  NOT NULL,                             " +
+                "PRIMARY KEY(filter_id, game_id)  ON CONFLICT IGNORE,  " +
+                "FOREIGN KEY(game_id) REFERENCES games(id),            " +
+                "FOREIGN KEY(filter_id) REFERENCES filters(id)        )"
+        );
+        createStatement.executeUpdate();
+
+        createStatement.close();
+    }
+
+    /**
+     * Add current filters to the database. If a filter exists already, it is
+     * ignored.
+     * @param connection A connection to the GIC database.
+     * @throws SQLException
+     */
+    private void addFilters(Connection connection) throws SQLException {
+        PreparedStatement insertStatement = connection.prepareStatement(
+                "INSERT INTO filters " +
+                "(id)                " +
+                "VALUES (?)          "
+        );
+
+        for (FilterType filter : FilterType.values()) {
+            insertStatement.setInt(1, filter.ordinal());
+            insertStatement.executeUpdate();
+        }
+
+        insertStatement.close();
+    }
 
 	/**
 	 * Finds common games between an arbitrarily long list of users
@@ -185,177 +202,195 @@ public class GamesInCommon {
 
         final Collection<SteamGame> result = new HashSet<SteamGame>();
         final CountDownLatch latch = new CountDownLatch(gameList.size());
-        final ExecutorService taskExecutor = Executors.newCachedThreadPool();
+        final ExecutorService taskExecutor = Executors.newFixedThreadPool(1);
+
+        final Connection connection;
+        final PreparedStatement gameSelectStatement;
+        final PreparedStatement filterSelectStatement;
+        final PreparedStatement insertGameStatement;
+        final PreparedStatement insertGameFilterStatement;
+
+        try {
+            connection = DriverManager.getConnection("jdbc:sqlite:" + DB_NAME);
+
+            gameSelectStatement = connection.prepareStatement(
+                    "SELECT g.id FROM games g " +
+                    "WHERE g.name = ?"
+            );
+
+            filterSelectStatement = connection.prepareStatement(
+                    "SELECT f.id FROM gamefilters gf " +
+                    "JOIN games g ON gf.game_id = g.id     " +
+                    "JOIN filters f ON gf.filter_id = f.id " +
+                    "WHERE g.name = ?                      "
+            );
+            insertGameStatement = connection.prepareStatement(
+                    "INSERT OR REPLACE INTO games " +
+                    "(id, name) " +
+                    "VALUES (?, ?)"
+            );
+            insertGameFilterStatement = connection.prepareStatement(
+                    "INSERT INTO gamefilters " +
+                    "(game_id, filter_id) " +
+                    "VALUES (?, ?)"
+            );
+        }
+        catch (SQLException e) {
+            logger.log(Level.SEVERE, e.getMessage(), e);
+            return null;
+        }
 
         // start going through the games
         for (final SteamGame game : gameList) {
             taskExecutor.execute(new Runnable() {
 
-                // prepared SQL statements reduce redundant processing
-                PreparedStatement tableSelectStatement = null;
-                PreparedStatement filterSelectStatement = null;
-                PreparedStatement filterInsertStatement = null;
-
                 @Override
                 public void run() {
-                    // prepare the table select statement
                     try {
-                        String tableSelectSQL = "SELECT name FROM sqlite_master WHERE type = 'table';";
-                        tableSelectStatement = connection.prepareStatement(tableSelectSQL);
-                    } catch (SQLException e0) {
-                        logger.log(Level.SEVERE, e0.getMessage());
+                        filterGame();
                     }
-
-                    filterGame();
-                    latch.countDown();
-
-                }
-
-                private void filterGame() {
-                    ResultSet tableSet = null;
-                    // first run a query through the local db, this returns all available filter types
-                    try {
-                        tableSet = tableSelectStatement.executeQuery();
-                    } catch (SQLException e1) {
-                        logger.log(Level.SEVERE, e1.getMessage(), e1);
+                    catch (SQLException e) {
+                        logger.log(Level.SEVERE, e.getMessage(), e);
+                    }
+                    catch (InterruptedException e) {
+                        // This indicates that we've been cancelled .
                         return;
                     }
-                    // filtersToCheck tells the following webcheck loop which filters need checking and insertion into the DB
-                    Map<FilterType, Boolean> filtersToCheck = new HashMap<FilterType, Boolean>();
-                    try {
-                        // go through each available table and check the filter that the table represents
-                        while (tableSet.next()) {
-                            // prepare the the first filter statement - table names cannot be wildcarded using a PreparedStatement
-                            String filterSelectSQL = "SELECT * FROM [" + tableSet.getString("name") + "] WHERE AppID = ?";
-                            filterSelectStatement = connection.prepareStatement(filterSelectSQL);
 
-                            ResultSet rSet = null;
-                            // if the game is not already in the result Collection
-                            if (!result.contains(game)) {
-                                for (FilterType filter : filterList) {
-                                    if (filter.getValue().equals((tableSet.getString("name")))) {
-                                        // prepare and execute the query
-                                        filterSelectStatement.setInt(1, game.getAppId());
-                                        rSet = filterSelectStatement.executeQuery();
+                    latch.countDown();
+                }
 
-                                        // if rSet.next() indicates a match
-                                        if (rSet.next()) {
-                                            // if the game passes the filter and is not already in the result collection, add it
-                                            if (rSet.getBoolean("HasProperty")) {
-                                                result.add(game);
-                                            }
-                                            // if data was found, no need to pull data from the web for this filter
-                                            filtersToCheck.put(filter, false);
-                                            rSet.close();
-                                        } else {
-                                            // "needs checking"
-                                            filtersToCheck.put(filter, true);
-                                            if (debug) {
-                                                logger.log(Level.FINEST, "[SQL] Queued game '" + game.getName() + "' for web check on filter "
-                                                        + filter.toString());
-                                            }
-                                        }
+                private boolean tooManyRequests(URLConnection urlConnection) {
+                    for (Map.Entry<String, List<String>> entry : urlConnection.getHeaderFields().entrySet()) {
+                        for (String value : entry.getValue()) {
+                            if (value.contains("HTTP/1.1 429")) {
+                                return true;
+                            }
+                        }
+                    }
+
+                    return false;
+                }
+
+                private void filterGame() throws SQLException, InterruptedException {
+
+                    List<Integer> gameFilters = new ArrayList<Integer>();
+                    boolean gameExists;
+
+                    synchronized (taskExecutor) {
+
+                        // TODO: this can be optimised bu just searching for app id instead of name.
+                        gameSelectStatement.setString(1, game.getName());
+                        ResultSet gamesSet = gameSelectStatement.executeQuery();
+                        gameExists = gamesSet.isBeforeFirst();
+
+                        filterSelectStatement.setString(1, game.getName());
+                        ResultSet gameFiltersSet = filterSelectStatement.executeQuery();
+                        while (gameFiltersSet.next()) {
+                            gameFilters.add(gameFiltersSet.getInt(1));
+                        }
+                    }
+
+                    // foundProperties records filters found for the game
+                    Set<FilterType> foundProperties = new HashSet<FilterType>();
+
+                    if ((!gameExists && gameFilters.isEmpty()) || forceWebCheck) {
+                        // Retrieve data from web and store in database.
+
+                        InputStream gameConnectionStream;
+                        synchronized (taskExecutor) {
+                            // Attempt to connect to the API for the current game. If we are unsuccessful, this usually
+                            // indicates we are spamming the service, so we wait a short time before trying again.
+                            while (true) {
+                                if (Thread.currentThread().isInterrupted()) {
+                                    throw new InterruptedException();
+                                }
+
+                                URLConnection gameConnection = null;
+
+                                try {
+                                    URL gameURL = new URL("http://store.steampowered.com/api/appdetails/?appids=" + game.getAppId());
+                                    gameConnection = gameURL.openConnection();
+                                    gameConnectionStream = gameConnection.getInputStream();
+
+                                    break;
+                                } catch (MalformedURLException e) {
+                                    logger.log(Level.SEVERE, e.getMessage(), e);
+                                    return;
+                                } catch (IOException e) {
+
+                                    if (!tooManyRequests(gameConnection)) {
+                                        logger.log(Level.SEVERE, e.getMessage(), e);
+                                        return;
                                     }
+
+                                    final int TIMEOUT = 60; // seconds.
+
+                                    logger.log(Level.WARNING, "Too many requests, waiting " + TIMEOUT + " seconds before continuing.");
+
+                                    Thread.sleep(TIMEOUT * 1000);
                                 }
                             }
-                            if (rSet != null) {
-                                rSet.close();
-                            }
                         }
 
-                        tableSet.close();
-                    } catch (SQLException e2) {
-                        logger.log(Level.SEVERE, e2.getMessage(), e2);
-                    }
-
-                    // determine if a web request is needed for this game
-                    boolean needsWebCheck = false;
-                    for (Map.Entry<FilterType, Boolean> filterToCheck : filtersToCheck.entrySet()) {
-                        if (filterToCheck.getValue().equals(true)) {
-                            needsWebCheck = true;
-                        }
-                    }
-
-                    if (forceWebCheck) {
-                        needsWebCheck = true;
-                    }
-
-                    // if all data on this game was in the database, no webcheck needed.
-                    if (!needsWebCheck) {
-                        logger.log(Level.INFO, "[SQL] Checked game '" + game.getName() + "'");
-                        // otherwise, if any data is missing, we'll need request it from the steampowered.com website
-                    } else {
-                        // foundProperties records whether it has or does not have each of the filters
-                        HashMap<FilterType, Boolean> foundProperties = new HashMap<FilterType, Boolean>();
-                        try (BufferedReader br = new BufferedReader(new InputStreamReader(new URL(
-                                "http://store.steampowered.com/api/appdetails/?appids=" + game.getAppId()).openStream()));) {
+                        try (BufferedReader br = new BufferedReader(new InputStreamReader(gameConnectionStream))) {
                             // Read lines in until there are no more to be read, run filter on each line looking for specified package IDs.
                             String line;
                             while ((line = br.readLine()) != null) {
-                                for (FilterType filter : filterList) {
-                                    // default false until set to true
-                                    foundProperties.put(filter, false);
+
+                                if (Thread.currentThread().isInterrupted()) {
+                                    throw new InterruptedException();
+                                }
+
+                                for (FilterType filter : FilterType.values()) {
                                     if (line.contains("\"" + filter.getValue() + "\"")) {
-                                        result.add(game);
-                                        // success - add to foundProperties as TRUE
-                                        foundProperties.put(filter, true);
+                                        foundProperties.add(filter);
                                     }
                                 }
                             }
+
                             if (debug) {
                                 for (FilterType filter : filterList) {
                                     logger.log(Level.FINEST, "[WEB] Game " + game.getName() + ": \"" + filter.toString() + "\" = "
-                                            + foundProperties.get(filter) + ".");
+                                            + foundProperties.contains(filter) + ".");
                                 }
                             }
-                            // if we have any filters that needed data, match them up with foundProperties and insert them into the database
-                            // IF filterToCheck -> true INSERT INTO DB foundProperties.value();
-                            for (Map.Entry<FilterType, Boolean> filterToCheck : filtersToCheck.entrySet()) {
-                                if (filterToCheck.getValue().equals(true)) {
-                                    if (debug) {
-                                        logger.log(Level.FINEST, "[WEB] Checking game '" + game.getName() + "' for property "
-                                                + filterToCheck.getKey());
-                                    }
-                                    for (Map.Entry<FilterType, Boolean> entry : foundProperties.entrySet()) {
-                                        String filterName = entry.getKey().toString();
-                                        // END OF ALL SQL WHACK-A-MOLE GAMES
-                                        ResultSet checkSet = connection.createStatement().executeQuery(
-                                                "SELECT 1 FROM [" + entry.getKey().toString() + "] WHERE AppID = '" + game.getAppId() + "';");
-                                        if (checkSet.next()) {
-                                            // if checkSet returns a value, skip
-                                            if (debug) {
-                                                logger.log(Level.FINEST, "[SQL] Data for game '" + game.getName()
-                                                        + "' already exists for property '" + filterName + "'.");
-                                            }
-                                        } else {
-                                            String filterInsertSQL = "INSERT INTO [" + filterName + "] (AppID, Name, HasProperty) VALUES (?,?,?)";
-                                            filterInsertStatement = connection.prepareStatement(filterInsertSQL);
-                                            filterInsertStatement.setInt(1, game.getAppId());
-                                            // no need to sanitise input for this any more, PreparedStatement takes care of it
-                                            filterInsertStatement.setString(2, game.getName());
-                                            // SQL takes booleans as 1 or 0 intead of TRUE or FALSE
-                                            filterInsertStatement.setBoolean(3, entry.getValue());
-                                            int rows = filterInsertStatement.executeUpdate();
-                                            if (debug) {
-                                                if (rows > 0) {
-                                                    logger.log(Level.FINEST,
-                                                            "[SQL] Value " + entry.getValue() + " inserted for game '" + game.getName()
-                                                                    + "', property '" + filterName + "'.");
-                                                } else {
-                                                    if (debug) {
-                                                        logger.log(Level.FINEST, "[SQL] Failed to add '" + game.getName() + "':" + entry.getValue()
-                                                                + " to '" + filterName + "'.");
-                                                    }
-                                                }
-                                            }
-                                        }
+
+                            synchronized (taskExecutor) {
+                                insertGameStatement.setInt(1, game.getAppId());
+                                insertGameStatement.setString(2, game.getName());
+                                int inserted  = insertGameStatement.executeUpdate();
+
+                                if (debug) {
+                                    if (inserted > 0) {
+                                        logger.log(Level.FINEST, "[SQL] Inserted into database game: " + game.getName());
+                                    } else {
+                                        logger.log(Level.WARNING, "[SQL] Unable to insert into database: " + game.getName());
                                     }
                                 }
+
+                                insertGameFilterStatement.setInt(1, game.getAppId());
+
+                                for (FilterType filter : foundProperties) {
+                                    insertGameFilterStatement.setInt(2, filter.ordinal());
+                                    insertGameFilterStatement.executeUpdate();
+                                }
                             }
+
                             logger.log(Level.INFO, "[WEB] Checked game '" + game.getName() + "'");
-                        } catch (IOException | SQLException e3) {
-                            logger.log(Level.SEVERE, e3.getMessage(), e3);
+                        } catch (IOException e) {
+                            logger.log(Level.SEVERE, e.getMessage(), e);
                         }
+                    } else {
+                        // Data is already in database.
+                        for (int filter : gameFilters) {
+                            foundProperties.add(FilterType.values()[filter]);
+                        }
+                        logger.log(Level.INFO, "[SQL] Checked game '" + game.getName() + "'");
+                    }
+
+                    if (foundProperties.containsAll(filterList)) {
+                        result.add(game);
                     }
                 }
             });
@@ -365,6 +400,7 @@ public class GamesInCommon {
             latch.await();
         } catch (InterruptedException e) {
             logger.log(Level.INFO, "Cancelled");
+            taskExecutor.shutdownNow();
             return null;
         }
 
