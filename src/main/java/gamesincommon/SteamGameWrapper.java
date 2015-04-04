@@ -21,7 +21,7 @@ public class SteamGameWrapper implements Comparable<SteamGameWrapper> {
 
 	@Override
 	public int compareTo(SteamGameWrapper o) {
-		return this.toString().compareTo(o.toString());
+		return this.toString().compareToIgnoreCase(o.toString());
 	}
 
 }
