@@ -215,14 +215,14 @@ public class GamesInCommon {
 
             gameSelectStatement = connection.prepareStatement(
                     "SELECT g.id FROM games g " +
-                    "WHERE g.name = ?"
+                    "WHERE g.id = ?"
             );
 
             filterSelectStatement = connection.prepareStatement(
                     "SELECT f.id FROM gamefilters gf " +
                     "JOIN games g ON gf.game_id = g.id     " +
                     "JOIN filters f ON gf.filter_id = f.id " +
-                    "WHERE g.name = ?                      "
+                    "WHERE g.id = ?                      "
             );
             insertGameStatement = connection.prepareStatement(
                     "INSERT OR REPLACE INTO games " +
@@ -279,12 +279,11 @@ public class GamesInCommon {
 
                     synchronized (taskExecutor) {
 
-                        // TODO: this can be optimised bu just searching for app id instead of name.
-                        gameSelectStatement.setString(1, game.getName());
+                        gameSelectStatement.setInt(1, game.getAppId());
                         ResultSet gamesSet = gameSelectStatement.executeQuery();
                         gameExists = gamesSet.isBeforeFirst();
 
-                        filterSelectStatement.setString(1, game.getName());
+                        filterSelectStatement.setInt(1, game.getAppId());
                         ResultSet gameFiltersSet = filterSelectStatement.executeQuery();
                         while (gameFiltersSet.next()) {
                             gameFilters.add(gameFiltersSet.getInt(1));
