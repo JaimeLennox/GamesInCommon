@@ -362,9 +362,9 @@ public class GamesInCommon {
 
                                 if (debug) {
                                     if (inserted > 0) {
-                                        logger.log(Level.FINEST, "[SQL] Inserted into database game: " + game.getName());
+                                        logger.log(Level.FINEST, "[LOCAL] Inserted into database game: " + game.getName());
                                     } else {
-                                        logger.log(Level.WARNING, "[SQL] Unable to insert into database: " + game.getName());
+                                        logger.log(Level.WARNING, "[LOCAL] Unable to insert into database: " + game.getName());
                                     }
                                 }
 
@@ -385,7 +385,7 @@ public class GamesInCommon {
                         for (int filter : gameFilters) {
                             foundProperties.add(FilterType.values()[filter]);
                         }
-                        logger.log(Level.INFO, "[SQL] Checked game '" + game.getName() + "'");
+                        logger.log(Level.INFO, "[LOCAL] Checked game '" + game.getName() + "'");
                     }
 
                     if (foundProperties.containsAll(filterList)) {
