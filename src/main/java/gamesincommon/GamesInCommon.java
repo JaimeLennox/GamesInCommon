@@ -20,6 +20,9 @@ import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
 import com.github.koraktor.steamcondenser.community.SteamGame;
 import com.github.koraktor.steamcondenser.community.SteamId;
 
+import static gamesincommon.Utils.getGames;
+import static gamesincommon.Utils.mergeSets;
+
 public class GamesInCommon {
 
     private Logger logger;
@@ -76,8 +79,8 @@ public class GamesInCommon {
     private void createTables(Connection connection) throws SQLException {
         PreparedStatement createStatement = connection.prepareStatement(
                 "CREATE TABLE games                 (" +
-                "id    INT   NOT NULL,               " +
-                "PRIMARY KEY(id)  ON CONFLICT IGNORE)"
+                        "id    INT   NOT NULL,               " +
+                        "PRIMARY KEY(id)  ON CONFLICT IGNORE)"
         );
         createStatement.executeUpdate();
 
@@ -110,8 +113,8 @@ public class GamesInCommon {
     private void addFilters(Connection connection) throws SQLException {
         PreparedStatement insertStatement = connection.prepareStatement(
                 "INSERT INTO filters " +
-                "(id)                " +
-                "VALUES (?)          "
+                        "(id)                " +
+                        "VALUES (?)          "
         );
 
         for (FilterType filter : FilterType.values()) {
@@ -164,30 +167,6 @@ public class GamesInCommon {
 
         return commonGames;
     }
-
-    public SteamId checkSteamId(String nameToCheck) throws SteamCondenserException {
-        try {
-            return SteamId.create(nameToCheck);
-        } catch (SteamCondenserException e1) {
-            try {
-                return SteamId.create(Long.parseLong(nameToCheck));
-            } catch (SteamCondenserException | NumberFormatException e2) {
-                throw e1;
-            }
-        }
-    }
-
-	/**
-	 * Finds all games from the given steam user.
-	 * 
-	 * @param sId
-	 *            The SteamId of the user to get games from.
-	 * @return A set of all games for the give user.
-	 * @throws SteamCondenserException
-	 */
-	public Collection<SteamGame> getGames(SteamId sId) throws SteamCondenserException {
-		return sId.getGames().values();
-	}
 
 	/**
 	 * Returns games that match one or more of the given filter types
@@ -249,13 +228,11 @@ public class GamesInCommon {
                 public void run() {
                     try {
                         filterGame();
-                    }
-                    catch (SQLException e) {
+                    } catch (SQLException e) {
                         logger.log(Level.SEVERE, e.getMessage(), e);
                         latch.countDown();
                         return;
-                    }
-                    catch (InterruptedException e) {
+                    } catch (InterruptedException e) {
                         // This indicates that we've been cancelled .
                         return;
                     }
@@ -322,7 +299,7 @@ public class GamesInCommon {
 
                             synchronized (taskExecutor) {
                                 insertGameStatement.setInt(1, game.getAppId());
-                                int inserted  = insertGameStatement.executeUpdate();
+                                int inserted = insertGameStatement.executeUpdate();
 
                                 if (debug) {
                                     if (inserted > 0) {
@@ -369,49 +346,6 @@ public class GamesInCommon {
 
         return result;
     }
-
-	/**
-	 * Merges multiple user game sets together to keep all games that are the same.
-	 * 
-	 * @param userGames
-	 *            A list of user game sets.
-	 * @return A set containing all common games.
-	 */
-	public Collection<SteamGame> mergeSets(List<Collection<SteamGame>> userGames) {
-
-		if (userGames.size() == 0) {
-			return null;
-		}
-
-		Collection<SteamGame> result = new ArrayList<SteamGame>();
-
-		int size = 0;
-		int index = 0;
-
-        for (int i = 0; i < userGames.size(); i++) {
-            if (Thread.currentThread().isInterrupted()) {
-                logger.log(Level.INFO, "Cancelled.");
-                return null;
-            }
-            if (userGames.get(i).size() > size) {
-                size = userGames.get(i).size();
-                index = i;
-            }
-        }
-
-		result.addAll(userGames.get(index));
-
-        for (Collection<SteamGame> userGame : userGames) {
-            if (Thread.currentThread().isInterrupted()) {
-                logger.log(Level.INFO, "Cancelled.");
-                return null;
-            }
-            result.retainAll(userGame);
-        }
-
-		return result;
-
-	}
 
     /**
      * Enable or disable forced web checking.

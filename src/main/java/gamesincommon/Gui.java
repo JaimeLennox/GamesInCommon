@@ -37,6 +37,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import static gamesincommon.Utils.checkSteamId;
+
 public class Gui {
 
 	final static Font font = new Font("Tahoma", Font.PLAIN, 18);
@@ -451,7 +453,7 @@ public class Gui {
 			name = name.replace("http://steamcommunity.com/profiles/", "");
 			name = name.replace("/", "");
 			try {
-				SteamId temp = gamesInCommon.checkSteamId(name);
+				SteamId temp = checkSteamId(name);
 				// If the SteamId doesn't already exist in playerIdList
 				if (!playerIdList.contains(temp)) {
 					// add to the list of SteamIds
@@ -527,7 +529,7 @@ public class Gui {
 					// ID is the last element of the href.
 					String playerUrl = name.attr("href");
 					String[] urlSplit = playerUrl.split("/");
-					SteamId id = gamesInCommon.checkSteamId(urlSplit[urlSplit.length - 1]);
+					SteamId id = checkSteamId(urlSplit[urlSplit.length - 1]);
 
 					if (id != null) {
 						String logId = id.getCustomUrl();
