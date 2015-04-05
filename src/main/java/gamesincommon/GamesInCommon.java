@@ -202,7 +202,7 @@ public class GamesInCommon {
 
         final Collection<SteamGame> result = new HashSet<SteamGame>();
         final CountDownLatch latch = new CountDownLatch(gameList.size());
-        final ExecutorService taskExecutor = Executors.newFixedThreadPool(1);
+        final ExecutorService taskExecutor = Executors.newFixedThreadPool(10);
 
         final Connection connection;
         final PreparedStatement gameSelectStatement;
