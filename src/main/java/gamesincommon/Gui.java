@@ -442,10 +442,13 @@ public class Gui {
 			name = name.replace("/", "");
 			try {
 				SteamId temp = gamesInCommon.checkSteamId(name);
-				// add to the list of SteamIds
-				playerIdList.add(temp);
-				// then add to the JList
-				playerListModel.addElement(temp);
+				// If the SteamId doesn't already exist in playerIdList
+				if (!playerIdList.contains(temp)) {
+					// add to the list of SteamIds
+					playerIdList.add(temp);
+					// then add to the JList
+					playerListModel.addElement(temp);
+				}
 			} catch (SteamCondenserException e) {
 				logger.log(Level.SEVERE, "\"" + name + "\": " + e.getMessage());
 			}
