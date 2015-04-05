@@ -68,10 +68,10 @@ public class Gui {
 	private JTextPane consoleText;
 	private JTextField addPlayerText;
 
-	private JList<SteamGameWrapper> outputList;
+	private JList<SteamGame> outputList;
 	private JList<SteamId> playerList;
 
-	private DefaultListModel<SteamGameWrapper> outputListModel;
+	private DefaultListModel<SteamGame> outputListModel;
 	private DefaultListModel<SteamId> playerListModel;
 
 	private ArrayList<SteamId> playerIdList;
@@ -149,8 +149,8 @@ public class Gui {
 
 		outputScrollPane = new JScrollPane();
 		outputScrollPane.setMinimumSize(new Dimension(450, outputScrollPane.getMinimumSize().height));
-		outputListModel = new DefaultListModel<SteamGameWrapper>();
-		outputList = new JList<SteamGameWrapper>(outputListModel);
+		outputListModel = new DefaultListModel<SteamGame>();
+		outputList = new JList<SteamGame>(outputListModel);
 		outputList.setFont(font);
 		outputScrollPane.setViewportView(outputList);
 
@@ -159,7 +159,7 @@ public class Gui {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
-					SteamGame gameToLaunch = outputList.getSelectedValue().getGame();
+					SteamGame gameToLaunch = outputList.getSelectedValue();
 					launchGame(gameToLaunch);
 				}
 			}
@@ -170,7 +170,7 @@ public class Gui {
 			public void keyPressed(KeyEvent e) {
 				super.keyPressed(e);
 				if (e.getKeyChar() == KeyEvent.VK_ENTER) {
-					SteamGame gameToLaunch = outputList.getSelectedValue().getGame();
+					SteamGame gameToLaunch = outputList.getSelectedValue();
 					launchGame(gameToLaunch);
 				}
 			}
@@ -416,19 +416,14 @@ public class Gui {
 			return;
 		}
 
-		List<SteamGameWrapper> gameList = new ArrayList<SteamGameWrapper>();
-
-		for (SteamGame steamGame : games) {
-			gameList.add(new SteamGameWrapper(steamGame));
-		}
-
-		Collections.sort(gameList);
+		List<SteamGame> orderedGames = new ArrayList<SteamGame>(games);
+		Collections.sort(orderedGames);
 
 		// Final count.
 		logger.log(Level.INFO, "Total games in common: " + games.size());
 
-		for (final SteamGameWrapper str : gameList) {
-			outputListModel.addElement(str);
+		for (final SteamGame game: orderedGames) {
+			outputListModel.addElement(game);
 		}
 
 		outputList.setSelectedIndex(0);
