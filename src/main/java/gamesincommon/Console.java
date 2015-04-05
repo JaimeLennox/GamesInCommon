@@ -29,7 +29,7 @@ public class Console {
      */
     public List<SteamId> getUsers() {
 
-        List<SteamId> users = new ArrayList<SteamId>();
+        List<SteamId> users = new ArrayList<>();
 
         System.out.println("Enter users one by one, typing 'FIN' when complete:");
 

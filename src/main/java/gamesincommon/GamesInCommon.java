@@ -1,7 +1,6 @@
 package gamesincommon;
 
 import java.io.*;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.sql.Connection;
@@ -134,7 +133,7 @@ public class GamesInCommon {
 	 */
     public Collection<SteamGame> findCommonGames(List<SteamId> users) {
 
-        final List<Collection<SteamGame>> userGames = new ArrayList<Collection<SteamGame>>();
+        final List<Collection<SteamGame>> userGames = new ArrayList<>();
 
         final CountDownLatch latch = new CountDownLatch(users.size());
         ExecutorService taskExecutor = Executors.newCachedThreadPool();
@@ -179,7 +178,7 @@ public class GamesInCommon {
 	 */
     public Collection<SteamGame> filterGames(Collection<SteamGame> gameList, final List<FilterType> filterList) {
 
-        final Collection<SteamGame> result = new HashSet<SteamGame>();
+        final Collection<SteamGame> result = new HashSet<>();
         final CountDownLatch latch = new CountDownLatch(gameList.size());
         final ExecutorService taskExecutor = Executors.newCachedThreadPool();
 
@@ -242,7 +241,7 @@ public class GamesInCommon {
 
                 private void filterGame() throws SQLException, InterruptedException {
 
-                    List<Integer> gameFilters = new ArrayList<Integer>();
+                    List<Integer> gameFilters = new ArrayList<>();
                     boolean gameExists;
 
                     synchronized (taskExecutor) {
@@ -259,7 +258,7 @@ public class GamesInCommon {
                     }
 
                     // foundProperties records filters found for the game
-                    Set<FilterType> foundProperties = new HashSet<FilterType>();
+                    Set<FilterType> foundProperties = new HashSet<>();
 
                     if ((!gameExists && gameFilters.isEmpty()) || forceWebCheck) {
                         // Retrieve data from web and store in database.

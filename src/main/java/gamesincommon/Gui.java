@@ -151,8 +151,8 @@ public class Gui {
 
 		outputScrollPane = new JScrollPane();
 		outputScrollPane.setMinimumSize(new Dimension(450, outputScrollPane.getMinimumSize().height));
-		outputListModel = new DefaultListModel<SteamGame>();
-		outputList = new JList<SteamGame>(outputListModel);
+		outputListModel = new DefaultListModel<>();
+		outputList = new JList<>(outputListModel);
 		outputList.setFont(font);
 		outputScrollPane.setViewportView(outputList);
 
@@ -193,7 +193,7 @@ public class Gui {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				((CardLayout) scanPanel.getLayout()).last(scanPanel);
-				scanner = new Scanner<Void, Void>();
+				scanner = new Scanner<>();
 				scanner.execute();
 			}
 		});
@@ -312,11 +312,11 @@ public class Gui {
 		playerListScrollPane.setMinimumSize(new Dimension(playerListScrollPane.getMinimumSize().width, 105));
 
 		// initialise data model for playerList, which tells the JList about the data it expects
-		playerListModel = new DefaultListModel<SteamId>();
+		playerListModel = new DefaultListModel<>();
 		// initialise ArrayList for player list
-		playerIdList = new ArrayList<SteamId>(10);
+		playerIdList = new ArrayList<>(10);
 		// initialise JList for player list display
-		playerList = new JList<SteamId>(playerListModel);
+		playerList = new JList<>(playerListModel);
 		playerList.setFont(font);
 		playerList.setCellRenderer(new PlayerListRenderer());
 		playerList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
@@ -418,7 +418,7 @@ public class Gui {
 			return;
 		}
 
-		List<SteamGame> orderedGames = new ArrayList<SteamGame>(games);
+		List<SteamGame> orderedGames = new ArrayList<>(games);
 		Collections.sort(orderedGames);
 
 		// Final count.
@@ -488,7 +488,7 @@ public class Gui {
      * Searches steam for the given name. This works with nicknames.
      */
     private void searchName() {
-		final Set<SteamId> searchResults = new HashSet<SteamId>();
+		final Set<SteamId> searchResults = new HashSet<>();
 
 		HttpClient httpClient = new DefaultHttpClient();
 		HttpGet sessionIdRequest = new HttpGet("http://steamcommunity.com");
@@ -550,8 +550,8 @@ public class Gui {
 
     private void popupWindow(Set<SteamId> searchResults) {
         final JDialog popup = new JDialog(gamesInCommonFrame);
-        DefaultListModel<SteamId> popupPlayerModel = new DefaultListModel<SteamId>();
-        JList<SteamId> popupPlayers = new JList<SteamId>();
+        DefaultListModel<SteamId> popupPlayerModel = new DefaultListModel<>();
+        JList<SteamId> popupPlayers = new JList<>();
 
         popupPlayers.setCellRenderer(new PlayerListRenderer());
         popupPlayers.addListSelectionListener(new ListSelectionListener() {

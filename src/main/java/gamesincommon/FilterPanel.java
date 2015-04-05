@@ -15,7 +15,7 @@ public class FilterPanel extends JPanel {
 	public FilterPanel() {
 		this.setLayout(new GridLayout(0, 2));
 		// creates checkbox list of all available filter types
-		filterCheckBoxes = new ArrayList<JCheckBox>();
+		filterCheckBoxes = new ArrayList<>();
 		for (FilterType filter : FilterType.values()) {
 			JCheckBox checkBox = new JCheckBox(filter.getValue());
 			 checkBox.setFont(Gui.font);
@@ -25,7 +25,7 @@ public class FilterPanel extends JPanel {
 	}
 
 	public List<FilterType> getFilters() {
-		ArrayList<FilterType> result = new ArrayList<FilterType>();
+		ArrayList<FilterType> result = new ArrayList<>();
 		for (JCheckBox cbox : filterCheckBoxes) {
 			if (cbox.isSelected()) {
 				result.add(FilterType.getEnum(cbox.getText()));

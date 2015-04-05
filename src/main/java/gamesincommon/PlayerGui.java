@@ -142,8 +142,8 @@ public class PlayerGui {
         playerPanel.add(userDisplayPanel);
         userDisplayPanel.setLayout(new MigLayout("", "[grow]", "[grow]"));
 
-        playerNameModel = new DefaultListModel<SteamId>();
-        playerNameList = new JList<SteamId>(playerNameModel);
+        playerNameModel = new DefaultListModel<>();
+        playerNameList = new JList<>(playerNameModel);
         playerNameList.setCellRenderer(new PlayerListRenderer());
         playerNameList.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         userDisplayPanel.add(playerNameList, "flowx,cell 0 0,grow");
@@ -162,8 +162,8 @@ public class PlayerGui {
         frame.getContentPane().add(playerFriendsPanel, "cell 0 0,grow");
         playerFriendsPanel.setLayout(new MigLayout("", "grow", "grow"));
 
-        playerFriendsModel = new DefaultListModel<SteamId>();
-        playerFriendsList = new JList<SteamId>(playerFriendsModel);
+        playerFriendsModel = new DefaultListModel<>();
+        playerFriendsList = new JList<>(playerFriendsModel);
         playerFriendsList.setCellRenderer(new PlayerListRenderer());
         playerFriendsList.setSelectionModel(new DefaultListSelectionModel() {
             private static final long serialVersionUID = 1L;
@@ -235,8 +235,8 @@ public class PlayerGui {
         frame.getContentPane().add(outputPanel, "cell 1 0,grow");
         outputPanel.setLayout(new MigLayout("", "grow", "grow"));
 
-        outputListModel = new DefaultListModel<SteamGame>();
-        outputList = new JList<SteamGame>(outputListModel);
+        outputListModel = new DefaultListModel<>();
+        outputList = new JList<>(outputListModel);
         outputList.setCellRenderer(new GameListRenderer());
 
         outputScroll = new JScrollPane(outputList);

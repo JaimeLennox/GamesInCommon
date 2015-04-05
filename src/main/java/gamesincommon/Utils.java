@@ -7,7 +7,6 @@ import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.logging.Level;
 
 /**
  * Created by HSAR on 05/04/2015.
@@ -60,7 +59,7 @@ public class Utils {
             return null;
         }
 
-        Collection<SteamGame> result = new ArrayList<SteamGame>();
+        Collection<SteamGame> result = new ArrayList<>();
 
         int size = 0;
         int index = 0;
