@@ -90,10 +90,10 @@ public class Gui {
 	 */
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
-            public void run() {
+			public void run() {
 				new Gui();
-            }
-        });
+			}
+		});
 	}
 
 	/**
@@ -543,7 +543,9 @@ public class Gui {
 			}
 
 		} catch (IOException | SteamCondenserException e) {
-			e.printStackTrace();
+			if (!e.getMessage().contains("specified profile could not be found")) {
+				e.printStackTrace();
+			}
 		}
 
 		popupWindow(searchResults);
