@@ -265,7 +265,9 @@ public class Gui {
 		addPlayerText.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent e) {
-                addPlayerText.setText("");
+				if (addPlayerText.getText().equals("Enter player name...")) {
+					addPlayerText.setText("");
+				}
             }
 
             @Override
