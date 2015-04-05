@@ -28,6 +28,8 @@ import com.github.koraktor.steamcondenser.exceptions.SteamCondenserException;
 import com.github.koraktor.steamcondenser.community.SteamGame;
 import com.github.koraktor.steamcondenser.community.SteamId;
 
+import static gamesincommon.Utils.checkSteamId;
+
 public class PlayerGui {
 
     private JFrame frame;
@@ -249,7 +251,7 @@ public class PlayerGui {
         if (!name.isEmpty()) {
             try {
                 // I don't know what's going on here but it looks really strange
-                final SteamId id = gamesInCommon.checkSteamId(name);
+                final SteamId id = checkSteamId(name);
                 SteamId blank = null;
                 playerNameModel.addElement(blank);
 
