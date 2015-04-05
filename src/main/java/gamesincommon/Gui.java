@@ -159,13 +159,19 @@ public class Gui {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
-					SteamGame launchGame = outputList.getSelectedValue().getGame();
-					logger.log(Level.INFO, "Launching " + launchGame.getName() + " (" + launchGame.getAppId() + ")");
-					try {
-						Desktop.getDesktop().browse(new URI("steam://run/" + launchGame.getAppId()));
-					} catch (IOException | URISyntaxException e1) {
-						logger.log(Level.SEVERE, e1.getMessage());
-					}
+					SteamGame gameToLaunch = outputList.getSelectedValue().getGame();
+					launchGame(gameToLaunch);
+				}
+			}
+		});
+		// also launch game on enter key press
+		outputList.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				super.keyPressed(e);
+				if (e.getKeyChar() == KeyEvent.VK_ENTER) {
+					SteamGame gameToLaunch = outputList.getSelectedValue().getGame();
+					launchGame(gameToLaunch);
 				}
 			}
 		});
@@ -362,6 +368,15 @@ public class Gui {
 
 		gamesInCommonFrame.pack();
 
+	}
+
+	private void launchGame(SteamGame gameToLaunch) {
+		logger.log(Level.INFO, "Launching " + gameToLaunch.getName() + " (" + gameToLaunch.getAppId() + ")");
+		try {
+            Desktop.getDesktop().browse(new URI("steam://run/" + gameToLaunch.getAppId()));
+        } catch (IOException | URISyntaxException e1) {
+            logger.log(Level.SEVERE, e1.getMessage());
+        }
 	}
 
 	class Scanner<T, V> extends SwingWorker<T, V> {
