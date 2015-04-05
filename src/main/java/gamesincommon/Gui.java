@@ -423,6 +423,9 @@ public class Gui {
 		// verify with Steam that the entry is a valid Steam ID and throw an error if not
 		String name = addPlayerText.getText();
 		if ((!name.isEmpty()) && (!name.equals("Enter player name..."))) {
+			// Strip URL character sequences
+			name = name.replace("http://steamcommunity.com/profiles/", "");
+			name = name.replace("/", "");
 			try {
 				SteamId temp = gamesInCommon.checkSteamId(name);
 				// add to the list of SteamIds
