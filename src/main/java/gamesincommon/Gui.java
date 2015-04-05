@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.util.*;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
@@ -513,10 +514,11 @@ public class Gui {
 			e.printStackTrace();
 		}
 
-		HttpGet searchRequest = new HttpGet("http://steamcommunity.com/search/SearchCommunityAjax?text="
-				+ addPlayerText.getText() + "&filter=users&sessionid=" + sessionId + "&steamid_user=false&page=1");
-
 		try {
+			HttpGet searchRequest = new HttpGet("http://steamcommunity.com/search/SearchCommunityAjax?text="
+					+ URLEncoder.encode(addPlayerText.getText(), "UTF-8") + "&filter=users&sessionid="
+					+ sessionId + "&steamid_user=false&page=1");
+
 			HttpResponse response = httpClient.execute(searchRequest);
 
 			JSONObject searchJson = new JSONObject(new JSONTokener(response.getEntity().getContent()));
