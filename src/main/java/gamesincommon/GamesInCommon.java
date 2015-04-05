@@ -202,7 +202,7 @@ public class GamesInCommon {
 
         final Collection<SteamGame> result = new HashSet<SteamGame>();
         final CountDownLatch latch = new CountDownLatch(gameList.size());
-        final ExecutorService taskExecutor = Executors.newFixedThreadPool(10);
+        final ExecutorService taskExecutor = Executors.newCachedThreadPool();
 
         final Connection connection;
         final PreparedStatement gameSelectStatement;
@@ -263,18 +263,6 @@ public class GamesInCommon {
                     latch.countDown();
                 }
 
-                private boolean tooManyRequests(URLConnection urlConnection) {
-                    for (Map.Entry<String, List<String>> entry : urlConnection.getHeaderFields().entrySet()) {
-                        for (String value : entry.getValue()) {
-                            if (value.contains("HTTP/1.1 429")) {
-                                return true;
-                            }
-                        }
-                    }
-
-                    return false;
-                }
-
                 private void filterGame() throws SQLException, InterruptedException {
 
                     List<Integer> gameFilters = new ArrayList<Integer>();
@@ -300,39 +288,13 @@ public class GamesInCommon {
                         // Retrieve data from web and store in database.
 
                         InputStream gameConnectionStream;
-                        synchronized (taskExecutor) {
-                            // Attempt to connect to the API for the current game. If we are unsuccessful, this usually
-                            // indicates we are spamming the service, so we wait a short time before trying again.
-                            while (true) {
-                                if (Thread.currentThread().isInterrupted()) {
-                                    throw new InterruptedException();
-                                }
-
-                                URLConnection gameConnection = null;
-
-                                try {
-                                    URL gameURL = new URL("http://store.steampowered.com/api/appdetails/?appids=" + game.getAppId());
-                                    gameConnection = gameURL.openConnection();
-                                    gameConnectionStream = gameConnection.getInputStream();
-
-                                    break;
-                                } catch (MalformedURLException e) {
-                                    logger.log(Level.SEVERE, e.getMessage(), e);
-                                    return;
-                                } catch (IOException e) {
-
-                                    if (!tooManyRequests(gameConnection)) {
-                                        logger.log(Level.SEVERE, e.getMessage(), e);
-                                        return;
-                                    }
-
-                                    final int TIMEOUT = 60; // seconds.
-
-                                    logger.log(Level.WARNING, "Too many requests, waiting " + TIMEOUT + " seconds before continuing.");
-
-                                    Thread.sleep(TIMEOUT * 1000);
-                                }
-                            }
+                        try {
+                            URL gameURL = new URL("http://store.steampowered.com/app/" + game.getAppId());
+                            URLConnection gameConnection = gameURL.openConnection();
+                            gameConnectionStream = gameConnection.getInputStream();
+                        } catch (Exception e) {
+                            logger.log(Level.SEVERE, e.getMessage(), e);
+                            return;
                         }
 
                         try (BufferedReader br = new BufferedReader(new InputStreamReader(gameConnectionStream))) {
