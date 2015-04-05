@@ -33,7 +33,7 @@
         <dependency>
             <groupId>com.github.koraktor</groupId>
             <artifactId>steam-condenser</artifactId>
-            <version>1.3.91</version>
+            <version>1.3.92</version>
             <scope>system</scope>
             <systemPath>${project.basedir}/lib/steam-condenser.jar</systemPath>
         </dependency>
