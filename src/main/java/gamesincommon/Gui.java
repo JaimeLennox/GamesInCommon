@@ -206,7 +206,13 @@ public class Gui {
 		addButton.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				addName();
+				disablePlayers();
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						addName();
+					}
+				}).start();
 			}
 		});
 
@@ -226,7 +232,13 @@ public class Gui {
         searchButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                searchName();
+				disablePlayers();
+				new Thread(new Runnable() {
+					@Override
+					public void run() {
+						searchName();
+					}
+				}).start();
             }
         });
 
@@ -441,6 +453,8 @@ public class Gui {
 			// Afterwards clear the text field.
 			addPlayerText.setText("");
 		}
+
+		enablePlayers();
 	}
 
 	/**
@@ -459,64 +473,65 @@ public class Gui {
      * Searches steam for the given name. This works with nicknames.
      */
     private void searchName() {
-        Set<SteamId> searchResults = new HashSet<SteamId>();
+		final Set<SteamId> searchResults = new HashSet<SteamId>();
 
-        HttpClient httpClient = new DefaultHttpClient();
-        HttpGet sessionIdRequest = new HttpGet("http://steamcommunity.com");
+		HttpClient httpClient = new DefaultHttpClient();
+		HttpGet sessionIdRequest = new HttpGet("http://steamcommunity.com");
 
-        String sessionId = "";
+		String sessionId = "";
 
-        try {
-            HttpResponse sessionIdResponse = httpClient.execute(sessionIdRequest);
-            BufferedReader br = new BufferedReader(new InputStreamReader(sessionIdResponse.getEntity().getContent()));
+		try {
+			HttpResponse sessionIdResponse = httpClient.execute(sessionIdRequest);
+			BufferedReader br = new BufferedReader(new InputStreamReader(sessionIdResponse.getEntity().getContent()));
 
-            String line;
-            while ((line = br.readLine()) != null) {
-                // Retrieve session id through really dodgy string methods because I'm bad at Java
-                String[] singleLine = line.split("\"");
-                if (singleLine[0].contains("g_sessionID")) {
-                    sessionId = singleLine[1];
-                    break;
-                }
-            }
-            br.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+			String line;
+			while ((line = br.readLine()) != null) {
+				// Retrieve session id through really dodgy string methods because I'm bad at Java
+				String[] singleLine = line.split("\"");
+				if (singleLine[0].contains("g_sessionID")) {
+					sessionId = singleLine[1];
+					break;
+				}
+			}
+			br.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
-        HttpGet searchRequest = new HttpGet("http://steamcommunity.com/search/SearchCommunityAjax?text="
-                + addPlayerText.getText() + "&filter=users&sessionid=" + sessionId + "&steamid_user=false&page=1");
+		HttpGet searchRequest = new HttpGet("http://steamcommunity.com/search/SearchCommunityAjax?text="
+				+ addPlayerText.getText() + "&filter=users&sessionid=" + sessionId + "&steamid_user=false&page=1");
 
-        try {
-            HttpResponse response = httpClient.execute(searchRequest);
+		try {
+			HttpResponse response = httpClient.execute(searchRequest);
 
-            JSONObject searchJson = new JSONObject(new JSONTokener(response.getEntity().getContent()));
+			JSONObject searchJson = new JSONObject(new JSONTokener(response.getEntity().getContent()));
 
-            if (searchJson.getInt("success") == 1) {
-                Document doc = Jsoup.parse(searchJson.getString("html"));
+			if (searchJson.getInt("success") == 1) {
+				Document doc = Jsoup.parse(searchJson.getString("html"));
 
-                Elements names = doc.getElementsByClass("searchPersonaName");
-                for (Element name : names) {
-                    // ID is the last element of the href.
-                    String playerUrl = name.attr("href");
-                    String[] urlSplit = playerUrl.split("/");
-                    SteamId id = gamesInCommon.checkSteamId(urlSplit[urlSplit.length - 1]);
+				Elements names = doc.getElementsByClass("searchPersonaName");
+				for (Element name : names) {
+					// ID is the last element of the href.
+					String playerUrl = name.attr("href");
+					String[] urlSplit = playerUrl.split("/");
+					SteamId id = gamesInCommon.checkSteamId(urlSplit[urlSplit.length - 1]);
 
-                    if (id != null) {
-                        String logId = id.getCustomUrl();
-                        if (logId == null) logId = id.getBaseUrl();
-                        logger.log(Level.FINEST, "Found potential search match: " + logId);
-                        searchResults.add(id);
-                    }
-                }
-            }
+					if (id != null) {
+						String logId = id.getCustomUrl();
+						if (logId == null) logId = id.getBaseUrl();
+						logger.log(Level.FINEST, "Found potential search match: " + logId);
+						searchResults.add(id);
+					}
+				}
+			}
 
-        } catch (IOException | SteamCondenserException e) {
-            e.printStackTrace();
-        }
+		} catch (IOException | SteamCondenserException e) {
+			e.printStackTrace();
+		}
 
-        popupWindow(searchResults);
-    }
+		popupWindow(searchResults);
+		enablePlayers();
+	}
 
     private void popupWindow(Set<SteamId> searchResults) {
         final JDialog popup = new JDialog(gamesInCommonFrame);
@@ -572,5 +587,23 @@ public class Gui {
 
 		// Display filtered list of common games.
 		showCommonGames(commonGames);
+	}
+
+	/**
+	 * Disables the buttons in the player panel.
+	 */
+	private void disablePlayers() {
+		addButton.setEnabled(false);
+		searchButton.setEnabled(false);
+		removeButton.setEnabled(false);
+	}
+
+	/**
+	 * Enables the buttons in the player panel.
+	 */
+	private void enablePlayers() {
+		addButton.setEnabled(true);
+		searchButton.setEnabled(true);
+		removeButton.setEnabled(true);
 	}
 }
