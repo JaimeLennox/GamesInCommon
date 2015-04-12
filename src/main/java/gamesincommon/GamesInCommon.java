@@ -77,7 +77,7 @@ public class GamesInCommon {
      */
     private void createTables(Connection connection) throws SQLException {
         PreparedStatement createStatement = connection.prepareStatement(
-                "CREATE TABLE games                 (" +
+                "CREATE TABLE games                         (" +
                         "id    INT   NOT NULL,               " +
                         "PRIMARY KEY(id)  ON CONFLICT IGNORE)"
         );
@@ -112,8 +112,8 @@ public class GamesInCommon {
     private void addFilters(Connection connection) throws SQLException {
         PreparedStatement insertStatement = connection.prepareStatement(
                 "INSERT INTO filters " +
-                        "(id)                " +
-                        "VALUES (?)          "
+                        "(id)        " +
+                        "VALUES (?)  "
         );
 
         for (FilterType filter : FilterType.values()) {
@@ -245,7 +245,6 @@ public class GamesInCommon {
                     boolean gameExists;
 
                     synchronized (taskExecutor) {
-
                         gameSelectStatement.setInt(1, game.getAppId());
                         ResultSet gamesSet = gameSelectStatement.executeQuery();
                         gameExists = gamesSet.isBeforeFirst();
