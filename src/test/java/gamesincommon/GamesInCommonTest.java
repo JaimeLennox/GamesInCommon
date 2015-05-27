@@ -1,10 +1,11 @@
 package gamesincommon;
 
-import gamesincommon.GamesInCommon;
-import java.util.logging.Logger;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.logging.Logger;
+
+import static org.junit.Assert.assertNotNull;
 
 public class GamesInCommonTest {
 
